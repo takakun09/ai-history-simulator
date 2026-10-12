@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>学情分析 · AI 历史人物模拟器</title>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="dot"></span> AI 历史人物模拟器</div>
+  <nav class="nav">
+    <a href="/">学生端</a>
+    <a href="/teacher">教师端</a>
+    <a class="active" href="/analytics">学情分析</a>
+  </nav>
+</header>
+<main class="container">
+  <div class="hero">
+    <h1>学情分析</h1>
+    <p>汇总学生在「抉择任务」中的论证评分，观察历史思维各维度的整体表现与个体差异。</p>
+  </div>
+  <div class="stat-grid" id="stats"></div>
+  <div class="analytics-grid">
+    <div class="panel"><h4>历史思维画像（全体平均）</h4><div id="dims"></div></div>
+    <div class="panel"><h4>最近提交</h4><div id="recent"></div></div>
+  </div>
+</main>
+<script type="module" src="/assets/analytics.js"></script>
+</body>
+</html>

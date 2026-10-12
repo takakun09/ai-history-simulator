@@ -79,15 +79,60 @@ def _mock(argument):
     }
 
 
-def evaluate(provider_id, base_url, api_key, model, figure, dilemma, choice_text, argument):
-    if provider_id == "mock":
-        return _mock(argument)
+def _score_once(provider_id, base_url, api_key, model, figure, dilemma, choice_text, argument,
+                temperature):
     system, user = build_messages(figure, dilemma, choice_text, argument)
     reply = providers.chat(
         provider_id, base_url, api_key, model, system,
         [{"role": "user", "content": user}], figure_name=figure.get("name", ""),
+        temperature=temperature,
     )
     return parse_result(reply)
+
+
+def _merge(first, second):
+    """两次独立评分的均值 + 逐维一致性（评分信度）。"""
+    a = first.get("scores") or {}
+    b = second.get("scores") or {}
+    merged, agreement = {}, {}
+    for key, _, _ in RUBRIC:
+        va, vb = int(a.get(key, 0)), int(b.get(key, 0))
+        merged[key] = round((va + vb) / 2)
+        diff = abs(va - vb)
+        agreement[key] = "高" if diff == 0 else ("中" if diff == 1 else "低")
+    out = dict(first)
+    out["scores"] = merged
+    out["total"] = sum(merged.values())
+    out["max_total"] = len(RUBRIC) * MAX_PER_ITEM
+    out["agreement"] = agreement
+    out["passes"] = [a, b]
+    out["needs_review"] = any(v == "低" for v in agreement.values())
+    return out
+
+
+def evaluate(provider_id, base_url, api_key, model, figure, dilemma, choice_text, argument,
+             double_score=False):
+    """评估学生论证。double_score=True 时做两次独立评分并给出一致性。"""
+    if provider_id == "mock":
+        result = _mock(argument)
+        result["agreement"] = None
+        result["needs_review"] = False
+        return result
+
+    first = _score_once(provider_id, base_url, api_key, model, figure, dilemma,
+                        choice_text, argument, temperature=0.0)
+    if first.get("error") or not double_score:
+        first["agreement"] = None
+        first["needs_review"] = False
+        return first
+
+    second = _score_once(provider_id, base_url, api_key, model, figure, dilemma,
+                         choice_text, argument, temperature=0.5)
+    if second.get("error"):
+        first["agreement"] = None
+        first["needs_review"] = False
+        return first
+    return _merge(first, second)
 
 
 # ---------------------------------------------------------------------------

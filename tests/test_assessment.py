@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.app import assessment, store
+from src.app import assessment, profile, store
 
 
 class AssessmentTest(unittest.TestCase):
@@ -30,6 +30,49 @@ class AssessmentTest(unittest.TestCase):
                                 {"scenario": "s", "options": []}, "A", "x" * 100)
         self.assertEqual(r["max_total"], 15)
         self.assertIn("feedback", r)
+
+
+class ReliabilityTest(unittest.TestCase):
+    def test_merge_agreement_levels(self):
+        a = {"scores": {"sourcing": 3, "contextualization": 2, "corroboration": 1,
+                        "argumentation": 2, "historical_empathy": 2}}
+        b = {"scores": {"sourcing": 3, "contextualization": 1, "corroboration": 0,
+                        "argumentation": 2, "historical_empathy": 2}}
+        m = assessment._merge(a, b)
+        self.assertEqual(m["agreement"]["sourcing"], "高")
+        self.assertEqual(m["agreement"]["contextualization"], "中")
+        self.assertEqual(m["scores"]["sourcing"], 3)
+        self.assertEqual(m["total"], sum(m["scores"].values()))
+        self.assertFalse(m["needs_review"])
+
+    def test_merge_flags_low_agreement(self):
+        m = assessment._merge({"scores": {"sourcing": 3}}, {"scores": {"sourcing": 0}})
+        self.assertEqual(m["agreement"]["sourcing"], "低")
+        self.assertTrue(m["needs_review"])
+
+    def test_mock_double_score_has_no_agreement(self):
+        r = assessment.evaluate("mock", "", "", "", {"name": "x"},
+                                {"scenario": "s", "options": []}, "A", "x" * 100, double_score=True)
+        self.assertIsNone(r["agreement"])
+
+
+class ProfileTest(unittest.TestCase):
+    def test_average_and_weakest(self):
+        rows = [
+            {"result": {"scores": {"sourcing": 3, "contextualization": 1, "corroboration": 2,
+                                   "argumentation": 2, "historical_empathy": 2}}},
+            {"result": {"scores": {"sourcing": 1, "contextualization": 1, "corroboration": 2,
+                                   "argumentation": 2, "historical_empathy": 2}}},
+        ]
+        p = profile.build_profile(rows)
+        self.assertEqual(p["count"], 2)
+        self.assertEqual(p["per_dimension"]["sourcing"]["avg"], 2.0)
+        self.assertEqual(p["weakest"], "contextualization")
+
+    def test_empty_profile(self):
+        p = profile.build_profile([])
+        self.assertEqual(p["count"], 0)
+        self.assertIsNone(p["weakest"])
 
 
 class CheckTest(unittest.TestCase):

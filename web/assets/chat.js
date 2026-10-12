@@ -6,6 +6,13 @@ let figure = null;
 let messages = [];
 let cfg = store.get("hs_api", { provider: "mock", model: "", base_url: "", api_key: "" });
 
+function studentId() {
+  let id = localStorage.getItem("hs_student");
+  if (!id) { id = "s-" + Math.random().toString(36).slice(2, 10); localStorage.setItem("hs_student", id); }
+  return id;
+}
+const STUDENT = studentId();
+
 async function boot() {
   if (!figId) { location.href = "/"; return; }
   try { figure = await api(`/api/figures/${encodeURIComponent(figId)}`); }
@@ -18,7 +25,7 @@ async function boot() {
   $("avatar").src = "/" + (figure.avatar || "");
   $("name").textContent = figure.name;
   $("era").textContent = figure.era || "";
-  renderSources(); renderQuestions(); renderDilemmas(); resetChat(); await setupProviders();
+  renderSources(); renderQuestions(); renderDilemmas(); resetChat(); await setupProviders(); loadProfile();
 }
 
 function renderSources() {
@@ -144,6 +151,8 @@ function openDilemma(d) {
     ${d.hint ? `<div class="hintline">💡 ${esc(d.hint)}</div>` : ""}
     <div style="font-size:13px;color:var(--muted)">你的论证——为什么这样选？最好引用史料作为依据。</div>
     <textarea id="argInput" placeholder="例如：我选择……，因为……（依据：《……》）"></textarea>
+    <label class="toggle" style="margin-top:12px"><input type="checkbox" id="dbl">
+      启用双评分（两次独立评分 + 一致性，更可靠，约 2 倍耗时）</label>
     <div class="row-actions"><button class="btn" id="mSubmit">提交论证</button>
       <span id="mStatus" style="align-self:center;color:var(--muted);font-size:13px"></span></div>
     <div id="mResult"></div>`;
@@ -163,11 +172,13 @@ async function submitDecision() {
       method: "POST",
       body: JSON.stringify({
         figure_id: figure.id, dilemma_id: activeDilemma.id, choice_id: chosen.value, argument,
+        student_id: STUDENT, double_score: !!($("dbl") && $("dbl").checked),
         provider: cfg.provider, model: cfg.model, base_url: cfg.base_url, api_key: cfg.api_key,
       }),
     });
     $("mStatus").textContent = "";
     renderResult(result);
+    loadProfile();
     const label = chosen.parentElement.querySelector("span").textContent;
     addMsg("sys", `【抉择 · ${activeDilemma.title}】你选择了「${label}」，论证已提交。`, false);
   } catch (e) {
@@ -180,17 +191,22 @@ function renderResult(r) {
     $("mResult").innerHTML = `<div class="fb warn"><b>评估失败</b><br>${esc(r.error)}<br>${esc(r.raw || "")}</div>`;
     return;
   }
-  const rows = RUBRIC.map(([k, name]) => `
-    <div>${name}</div>
-    <div><span class="bar"><i style="width:${(r.scores[k] / 3) * 100}%"></i></span>
-      <b style="margin-left:8px">${r.scores[k]}/3</b></div>`).join("");
+  const AG = { "高": "ag-high", "中": "ag-mid", "低": "ag-low" };
+  const rows = RUBRIC.map(([k, name]) => {
+    const ag = r.agreement && r.agreement[k]
+      ? `<span class="ag ${AG[r.agreement[k]] || ""}">一致性 ${r.agreement[k]}</span>` : "";
+    return `<div>${name}</div>
+      <div><span class="bar"><i style="width:${(r.scores[k] / 3) * 100}%"></i></span>
+      <b style="margin-left:8px">${r.scores[k]}/3</b>${ag}</div>`;
+  }).join("");
   $("mResult").innerHTML = `
     <hr style="border:none;border-top:1px solid var(--line);margin:22px 0 4px">
     <div class="total">总分 ${r.total} / ${r.max_total}</div>
     <div class="score-grid">${rows}</div>
     <div class="fb good"><b>👍 做得好</b><br>${(r.strengths || []).map(esc).join("<br>") || "—"}</div>
     <div class="fb warn"><b>🔧 可以改进</b><br>${(r.improvements || []).map(esc).join("<br>") || "—"}</div>
-    <div class="fb"><b>点评</b><br>${esc(r.feedback || "")}</div>`;
+    <div class="fb"><b>点评</b><br>${esc(r.feedback || "")}</div>
+    ${r.needs_review ? '<div class="fb warn"><b>⚠️ 评分一致性偏低</b><br>该次评分的部分维度两次结果差异较大，建议教师复核或让学生补充论证后再评。</div>' : ""}`;
 }
 
 $("mClose").onclick = () => { $("modal").hidden = true; };
@@ -256,7 +272,7 @@ async function submitCheck() {
     const { result } = await api("/api/check", {
       method: "POST",
       body: JSON.stringify({
-        figure_id: figure.id, claim: activeClaim, verdict: v.value, basis,
+        figure_id: figure.id, claim: activeClaim, verdict: v.value, basis, student_id: STUDENT,
         provider: cfg.provider, model: cfg.model, base_url: cfg.base_url, api_key: cfg.api_key,
       }),
     });
@@ -278,4 +294,31 @@ function renderCheckResult(r) {
     <div class="fb good"><b>你的判断：${esc(r.verdict || "")}</b><br>${esc(r.reason || "")}</div>
     ${r.suggestion ? `<div class="fb warn"><b>可以改进</b><br>${esc(r.suggestion)}</div>` : ""}
     ${r.reference ? `<div class="fb"><b>参照判断</b><br>${esc(r.reference)}</div>` : ""}`;
+}
+
+
+/* ---------- 历史思维画像（P0-3） ---------- */
+async function loadProfile() {
+  try {
+    const { profile: p } = await api(`/api/profile?student_id=${encodeURIComponent(STUDENT)}`);
+    renderProfile(p);
+  } catch (e) { /* 静默失败，不打断对话 */ }
+}
+
+function renderProfile(p) {
+  const box = $("profile");
+  if (!box) return;
+  if (!p || !p.count) {
+    box.innerHTML = '<div class="empty">完成一次「抉择任务」后，这里会出现你的能力画像。</div>';
+    return;
+  }
+  const rows = RUBRIC.map(([k, name]) => {
+    const d = p.per_dimension[k];
+    return `<div class="prof-row"><span>${name}</span>
+      <span class="bar"><i style="width:${d.pct || 0}%"></i></span>
+      <b>${d.avg == null ? "—" : d.avg}</b></div>`;
+  }).join("");
+  box.innerHTML = `<div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">已完成 ${p.count} 次抉择论证</div>
+    ${rows}
+    ${p.weakest ? `<div class="fb warn" style="margin-top:10px">最需要加强：<b>${esc(p.per_dimension[p.weakest].name)}</b></div>` : ""}`;
 }

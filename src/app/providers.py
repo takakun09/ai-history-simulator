@@ -107,7 +107,7 @@ def _post_json(url, payload, headers, timeout=60):
         raise RuntimeError(f"连接 {url} 超时") from exc
 
 
-def chat(provider_id, base_url, api_key, model, system, messages, figure_name=""):
+def chat(provider_id, base_url, api_key, model, system, messages, figure_name="", temperature=0.8):
     spec = next((p for p in PROVIDERS if p["id"] == provider_id), None)
     if spec is None:
         raise ValueError(f"未知 API 接口：{provider_id}")
@@ -131,7 +131,7 @@ def chat(provider_id, base_url, api_key, model, system, messages, figure_name=""
         payload = {
             "model": model,
             "messages": [{"role": "system", "content": system}, *messages],
-            "temperature": 0.8,
+            "temperature": temperature,
         }
         headers = {"Content-Type": "application/json"}
         if api_key:
@@ -143,7 +143,8 @@ def chat(provider_id, base_url, api_key, model, system, messages, figure_name=""
             raise RuntimeError(f"接口返回格式异常：{json.dumps(data, ensure_ascii=False)[:300]}") from exc
 
     if kind == "anthropic":
-        payload = {"model": model, "max_tokens": 800, "system": system, "messages": messages}
+        payload = {"model": model, "max_tokens": 800, "temperature": temperature,
+                   "system": system, "messages": messages}
         headers = {
             "Content-Type": "application/json",
             "x-api-key": api_key or "",

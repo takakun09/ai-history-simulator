@@ -9,14 +9,15 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from . import assessment, providers, store
+from . import assessment, profile, providers, store
 
 ROOT = Path(__file__).resolve().parents[2]
 WEB = ROOT / "web"
 mimetypes.add_type("image/svg+xml", ".svg")
 mimetypes.add_type("text/javascript", ".js")
 
-ROUTES = {"/": "index.html", "/chat": "chat.html", "/teacher": "teacher.html"}
+ROUTES = {"/": "index.html", "/chat": "chat.html", "/teacher": "teacher.html",
+          "/analytics": "analytics.html"}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -62,6 +63,20 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/figures":
             scope = (query.get("scope") or ["student"])[0]
             return self._json({"figures": store.list_figures(published_only=(scope == "student"))})
+        if path == "/api/profile":
+            sid = (query.get("student_id") or [""])[0]
+            rows = [r for r in store.list_submissions()
+                    if not sid or r.get("student_id") == sid]
+            return self._json({"profile": profile.build_profile(rows)})
+        if path == "/api/analytics":
+            subs = store.list_submissions()
+            checks = store.list_checks()
+            return self._json({
+                "profile": profile.build_profile(subs),
+                "counts": {"decisions": len(subs), "checks": len(checks),
+                           "figures": len(store.list_figures())},
+                "recent": list(reversed(subs[-20:])),
+            })
         if path.startswith("/api/figures/"):
             fig = store.get_figure(path.rsplit("/", 1)[-1])
             return self._json(fig) if fig else self._json({"error": "not found"}, 404)
@@ -119,12 +134,14 @@ class Handler(BaseHTTPRequestHandler):
                     body.get("provider", "mock"), body.get("base_url", ""),
                     body.get("api_key", ""), body.get("model", ""),
                     fig, dilemma, (opt or {}).get("text", ""), argument,
+                    double_score=bool(body.get("double_score")),
                 )
             except Exception as exc:
                 return self._json({"error": f"{type(exc).__name__}: {exc}"}, 502)
             import datetime
             store.save_submission({
                 "created_at": datetime.datetime.now().isoformat(timespec="seconds"),
+                "student_id": body.get("student_id", ""),
                 "figure_id": fig["id"], "figure": fig.get("name", ""),
                 "dilemma_id": dilemma["id"], "dilemma": dilemma.get("title", ""),
                 "choice": (opt or {}).get("text", ""), "argument": argument, "result": result,
@@ -155,6 +172,7 @@ class Handler(BaseHTTPRequestHandler):
             import datetime
             store.save_check({
                 "created_at": datetime.datetime.now().isoformat(timespec="seconds"),
+                "student_id": body.get("student_id", ""),
                 "figure_id": fig["id"], "figure": fig.get("name", ""),
                 "claim": claim, "verdict": verdict, "basis": basis, "result": result,
             })
