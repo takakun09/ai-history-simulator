@@ -1,15 +1,79 @@
+// i18n 冒烟测试：最小 DOM 桩，验证「静态结构 / 动态渲染 / 还原 / 不误翻」
 class T { constructor(v){ this.nodeType=3; this.nodeValue=v; this.parentElement={closest:()=>null}; } }
-class E { constructor(k=[]){ this.nodeType=1; this.childNodes=k; this._a={}; this._d={}; }
-  matches(){return false;} hasAttribute(k){return k in this._a;} getAttribute(k){return this._a[k]??null;}
-  setAttribute(k,v){this._a[k]=v;} get dataset(){return this._d;} }
-const cases = ["开始","选择：王平——谨慎持重","编辑：诸葛亮","一致性 高","请先完成自评（还差 3 项）",
-               "本次使用了 ","级提示（不扣分，仅供教师参考）。","元认知提示：你整体高估了约 0.8 分。",
-               "自评偏差：整体低估约 1.2 分","最需要加强：","史料溯源"];
-const nodes = cases.map(c => new T(c));
-global.localStorage = { getItem: () => "en", setItem: () => {} };
-global.MutationObserver = class { observe(){} };
-global.document = { readyState:"complete", title:"x", documentElement:{}, body:new E(nodes),
-  querySelector:()=>null, addEventListener:()=>{} };
+class E {
+  constructor(tag, kids=[]){ this.nodeType=1; this.tagName=tag; this.childNodes=kids; this._a={}; }
+  matches(){ return false; }
+  hasAttribute(k){ return k in this._a; }
+  getAttribute(k){ return this._a[k] ?? null; }
+  setAttribute(k,v){ this._a[k]=v; }
+}
+const el = (tag, kids) => new E(tag, kids);
+const text = (v) => new T(v);
+const kids = (e) => e.childNodes;
+
+// 真实页面结构：header（顶栏）+ main（正文）
+const brand = text("AI 历史人物模拟器");
+const navHome = text("学生端");
+const navAnalytics = text("学情分析");
+const header = el("header", [el("div", [brand]), el("nav", [navHome, navAnalytics])]);
+
+const h1 = text("学情分析");                       // 与导航同文案，正文里也必须翻
+const hero = text("汇总学生在「抉择任务」中的论证评分，观察历史思维各维度的整体表现与个体差异。");
+const dimName = text("史料溯源");
+const level = text("起步");
+const content = text("这是学生自己写的内容，不应被翻译");
+const main = el("main", [el("div", [h1, hero]), el("div", [dimName, level, content])]);
+
+const body = el("body", [header, main]);
+
+let moCallback = null;
+globalThis.localStorage = { getItem: () => "en", setItem: () => {} };
+globalThis.MutationObserver = class { constructor(cb){ moCallback = cb; } observe(){} disconnect(){} };
+globalThis.document = {
+  readyState: "complete",
+  title: "学情分析 · AI 历史人物模拟器",
+  documentElement: {},
+  body,
+  querySelector: () => null,
+  addEventListener: () => {},
+};
+
 const m = await import(new URL("../web/assets/i18n.js", import.meta.url).href);
 m.applyI18n();
-cases.forEach((c,i)=>console.log(`${c}  ->  ${nodes[i].nodeValue}`));
+const expected = [
+  [brand, "AI Historical Figure Simulator"],
+  [navHome, "Student"],
+  [navAnalytics, "Analytics"],
+  [h1, "Analytics"],                                  // ← 之前就是这条没翻
+  [hero, "Aggregated argument scores from decision tasks, across the five historical-thinking dimensions."],
+  [dimName, "Sourcing"],
+  [level, "Starting"],
+  [content, "这是学生自己写的内容，不应被翻译"],
+];
+let fail = 0;
+console.log(`title -> ${document.title}`);
+for (const [node, want] of expected) {
+  const got = node.nodeValue;
+  const ok = got === want;
+  if (!ok) fail += 1;
+  console.log(`${ok ? "PASS" : "FAIL"}  ${got}`);
+}
+
+// 动态渲染：模拟 analytics.js 之后才插入内容 + observer 触发
+const dyn = text("抉择提交");
+body.childNodes.push(el("div", [dyn]));
+if (moCallback) moCallback();
+await new Promise((r) => setTimeout(r, 60));
+console.log(`${dyn.nodeValue === "Decisions" ? "PASS" : "FAIL"}  动态渲染 -> ${dyn.nodeValue}`);
+if (dyn.nodeValue !== "Decisions") fail += 1;
+
+// 切回中文应完整还原
+m.setLang("zh");
+for (const [node, want] of [[h1, "学情分析"], [hero, "汇总学生在「抉择任务」中的论证评分，观察历史思维各维度的整体表现与个体差异。"], [level, "起步"]]) {
+  const ok = node.nodeValue === want;
+  if (!ok) fail += 1;
+  console.log(`${ok ? "PASS" : "FAIL"}  还原 -> ${node.nodeValue}`);
+}
+
+console.log(fail === 0 ? "\n全部通过 ✅" : `\n失败 ${fail} 项 ❌`);
+process.exit(fail === 0 ? 0 : 1);

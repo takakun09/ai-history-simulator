@@ -271,12 +271,15 @@ const PATTERNS = [
 
 const LS_KEY = "hs_lang";
 let LANG = localStorage.getItem(LS_KEY) || "zh";
-const ORIGINALS = new WeakMap();
+
+const ORIGINALS = new WeakMap();   // Text 节点 -> 原文
+const ATTR_ORIG = new WeakMap();   // 元素 -> {attr: 原文}
 const SKIP = "[data-no-i18n]";
+const OBS_OPTS = { childList: true, subtree: true, characterData: true };
 
 function value(zh) {
   const hit = DICT[zh];
-  if (!hit) return zh;                       // 词条缺失时原样返回，绝不崩
+  if (!hit) return zh;                       // 词条缺失就原样返回，绝不抛错
   return LANG === "tw" ? hit[0] : LANG === "en" ? hit[1] : zh;
 }
 
@@ -297,33 +300,48 @@ function translateKey(zh) {
   return zh;
 }
 
-function walk(node) {
-  if (node.nodeType === 3) {
-    const parent = node.parentElement;
-    if (!parent || parent.closest(SKIP)) return;
-    const raw = node.nodeValue;
-    const trimmed = ORIGINALS.has(node) ? ORIGINALS.get(node) : raw.trim();
-    if (!ORIGINALS.has(node)) ORIGINALS.set(node, trimmed);
-    if (!trimmed) return;
-    // 文本节点里可能夹着换行与缩进，统一压成单空格再查词典
-    const key = trimmed.replace(/\s+/g, " ");
-    const out = DICT[trimmed] ? translateKey(trimmed)
-      : DICT[key] ? translateKey(key)
-        : translateKey(trimmed);
-    const next = raw.replace(raw.trim(), out);
-    if (next !== raw) node.nodeValue = next;
-    return;
-  }
-  if (node.nodeType !== 1) return;
-  if (node.matches && node.matches(SKIP)) return;
+function walkText(node) {
+  const parent = node.parentElement;
+  if (!parent || (parent.closest && parent.closest(SKIP))) return;
+
+  const raw = node.nodeValue;
+  let original = ORIGINALS.get(node);
+  if (original === undefined) { original = raw.trim(); ORIGINALS.set(node, original); }
+  if (!original) return;
+
+  const key = original.replace(/\s+/g, " ");
+  const out = DICT[original] ? translateKey(original)
+    : DICT[key] ? translateKey(key)
+      : translateKey(original);
+  const next = raw.replace(raw.trim(), out);
+  if (next !== raw) node.nodeValue = next;    // 只在真的变了才写，避免自我触发
+}
+
+function walkAttrs(node) {
+  if (!node.hasAttribute) return;
+  let store = ATTR_ORIG.get(node);
+  if (!store) { store = {}; ATTR_ORIG.set(node, store); }
   for (const attr of ["placeholder", "title", "aria-label"]) {
-    if (node.hasAttribute && node.hasAttribute(attr)) {
-      const k = node.dataset["i18n" + attr] || node.getAttribute(attr).trim();
-      if (!node.dataset["i18n" + attr]) node.dataset["i18n" + attr] = k;
-      node.setAttribute(attr, translateKey(k));
-    }
+    if (!node.hasAttribute(attr)) continue;
+    if (store[attr] === undefined) store[attr] = (node.getAttribute(attr) || "").trim();
+    const out = translateKey(store[attr]);
+    if (node.getAttribute(attr) !== out) node.setAttribute(attr, out);
   }
-  node.childNodes.forEach(walk);
+}
+
+function walk(node) {
+  try {
+    if (node.nodeType === 3) return walkText(node);
+    if (node.nodeType !== 1) return;
+    if (node.matches && node.matches(SKIP)) return;
+    walkAttrs(node);
+    if (node.childNodes) {
+      for (let i = 0; i < node.childNodes.length; i += 1) walk(node.childNodes[i]);
+    }
+  } catch (err) {
+    // 单个节点失败不影响其余部分
+    if (globalThis.console) console.warn("[i18n] skipped node:", err);
+  }
 }
 
 let TITLE_ORIGINAL = null;
@@ -332,7 +350,8 @@ export function applyI18n() {
   if (TITLE_ORIGINAL === null) TITLE_ORIGINAL = document.title;
   if (TITLE_ORIGINAL) document.title = translateKey(TITLE_ORIGINAL.trim());
   if (document.body) walk(document.body);
-  document.documentElement.lang = LANG === "en" ? "en" : LANG === "tw" ? "zh-Hant" : "zh-Hans";
+  document.documentElement.lang =
+    LANG === "en" ? "en" : LANG === "tw" ? "zh-Hant" : "zh-Hans";
 }
 
 export function currentLang() { return LANG; }
@@ -340,7 +359,7 @@ export function currentLang() { return LANG; }
 export function setLang(lang) {
   LANG = lang;
   localStorage.setItem(LS_KEY, lang);
-  applyI18n();
+  runPass();                                  // 立即生效，不等 observer
 }
 
 function mountSwitcher() {
@@ -360,11 +379,40 @@ function mountSwitcher() {
   sel.addEventListener("change", () => setLang(sel.value));
 }
 
+let mo = null;
+let scheduled = false;
+
+function observe() {
+  if (mo && document.body) mo.observe(document.body, OBS_OPTS);
+}
+
+// 翻译期间先断开 observer，翻完再挂上：避免"写入 → 触发 → 再写入"的自激循环
+function runPass() {
+  if (mo) mo.disconnect();
+  applyI18n();
+  observe();
+}
+
+function schedule() {
+  if (scheduled) return;
+  scheduled = true;
+  const run = () => { scheduled = false; runPass(); };
+  if (typeof globalThis.requestAnimationFrame === "function") {
+    globalThis.requestAnimationFrame(run);
+  } else {
+    setTimeout(run, 30);
+  }
+}
+
 function boot() {
   mountSwitcher();
-  applyI18n();
-  const mo = new MutationObserver(() => applyI18n());
-  mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+  runPass();
+  mo = new MutationObserver(schedule);
+  observe();
+  if (typeof globalThis.addEventListener === "function") {
+    globalThis.addEventListener("load", schedule);
+  }
+  globalThis.applyI18n = applyI18n;   // 页面渲染完可主动调用，双保险
 }
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
