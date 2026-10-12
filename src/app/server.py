@@ -229,9 +229,39 @@ class Handler(BaseHTTPRequestHandler):
         return self._json({"error": "not found"}, 404)
 
 
+def _lan_ips():
+    """尽量列出本机在局域网中的 IPv4 地址，方便把链接发给同一 WiFi 下的人。"""
+    import socket
+
+    ips = set()
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            ip = info[4][0]
+            if not ip.startswith("127."):
+                ips.add(ip)
+    except Exception:
+        pass
+    if not ips:
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.connect(("8.8.8.8", 80))   # 只为取本机出口地址，不发送数据
+            ips.add(sock.getsockname()[0])
+            sock.close()
+        except Exception:
+            pass
+    return sorted(ips)
+
+
 def main(host="127.0.0.1", port=8777):
     httpd = ThreadingHTTPServer((host, port), Handler)
-    print(f"AI 历史人物模拟器 Demo 运行中 → http://{host}:{port}")
+    print("AI 历史人物模拟器 Demo 已启动")
+    print(f"  本机打开          → http://127.0.0.1:{port}")
+    if host == "0.0.0.0":
+        for ip in _lan_ips():
+            print(f"  同一局域网的其他设备 → http://{ip}:{port}")
+        print("  （把上面这条链接发给同一 WiFi 下的同学/老师即可；按 Ctrl+C 停止）")
+    else:
+        print("  想让同一网络的其他人访问，请加 --host 0.0.0.0")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
@@ -239,4 +269,11 @@ def main(host="127.0.0.1", port=8777):
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="AI 历史人物模拟器 Demo")
+    parser.add_argument("--host", default="127.0.0.1",
+                        help="监听地址；填 0.0.0.0 可让同一局域网的设备访问")
+    parser.add_argument("--port", type=int, default=8777, help="端口，默认 8777")
+    args = parser.parse_args()
+    main(host=args.host, port=args.port)

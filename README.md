@@ -166,6 +166,31 @@ python3 -m unittest discover -s tests -v
 - 对话数据目前**不落库**，刷新页面即清空；人物配置存于 `data/figures.json`。
 - 历史人物为**教学模拟**，允许展现立场与时代局限，不代表史实定论。
 
+## 分享给别人
+
+### 场景一：同一局域网（最快，适合答辩现场 / 同学围观）
+
+```bash
+python3 -m src.app.server --host 0.0.0.0
+```
+
+启动后会打印一条形如 `http://192.168.x.x:8777` 的地址，**发给同一 WiFi 下的任何设备**（手机、平板、别人的电脑）都能打开，无需装任何东西。
+
+> macOS 首次可能弹窗询问"是否允许 Python 接受传入网络连接"，要点**允许**。
+> 关闭终端即停止服务。
+
+### 场景二：只给队友看代码
+
+仓库是私有的，到 **GitHub → Settings → Collaborators** 里把队友加进来即可。
+
+### 场景三：让任何人点开链接就能用（需要部署）
+
+本项目是**零依赖**的 Python 标准库服务 + 静态前端，可以直接部署到任意支持 Python 的托管平台（Render / Railway / Fly.io 等）：
+
+- 启动命令：`python3 -m src.app.server --host 0.0.0.0 --port $PORT`
+- **不需要在服务器上配置任何 API Key**：模型密钥由使用者在页面上自行填写，只存在他本人的浏览器里；不填也能用「离线演示」模式。
+- 也可以先录一段演示视频，作为备选。
+
 ## 常见问题（Troubleshooting）
 
 ### 1. `SSL: CERTIFICATE_VERIFY_FAILED` / `unable to get local issuer certificate`
