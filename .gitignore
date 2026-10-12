@@ -9,3 +9,4 @@ work/
 data/figures.local.json
 data/*.json
 *.bundle
+.secrets/
