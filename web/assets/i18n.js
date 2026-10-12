@@ -260,31 +260,48 @@ const DICT = {
 
 const PREFIX_KEYS = [
   "全体最需要加强：", "最需要加强：", "找不到该人物：", "元认知提示：",
+  "你的判断：", "总分",
   "保存失败：", "删除失败：", "提交失败：", "调用失败：", "加载失败：",
   "核对失败：", "选择：", "编辑：", "抉择：",
 ];
 
 const PATTERNS = [
   [/^抉择\s*(\d+)\s*次\s*·\s*核对\s*(\d+)\s*次$/, (m, L) =>
-    L === "en" ? `${m[1]} decision(s) · ${m[2]} check(s)` : (L === "tw" ? `抉擇 ${m[1]} 次 · 核對 ${m[2]} 次` : m[0])],
+    L === "en" ? `${m[1]} decision(s) · ${m[2]} check(s)`
+      : L === "tw" ? `抉擇 ${m[1]} 次 · 核對 ${m[2]} 次` : m[0]],
   [/^已完成\s*(\d+)\s*次抉择论证$/, (m, L) =>
-    L === "en" ? `${m[1]} decision argument(s) completed` : m[0]],
+    L === "en" ? `${m[1]} decision argument(s) completed`
+      : L === "tw" ? `已完成 ${m[1]} 次抉擇論證` : m[0]],
   [/^用了\s*(\d+)\s*级提示$/, (m, L) =>
-    L === "en" ? `used ${m[1]} hint(s)` : m[0]],
+    L === "en" ? `used ${m[1]} hint(s)` : L === "tw" ? `用了 ${m[1]} 級提示` : m[0]],
   [/^整体高估了约\s*([\d.]+)\s*分。$/, (m, L) =>
-    L === "en" ? `you over-rated yourself by about ${m[1]}.` : m[0]],
+    L === "en" ? `you over-rated yourself by about ${m[1]}.`
+      : L === "tw" ? `你整體高估了約 ${m[1]} 分。` : m[0]],
   [/^整体低估了约\s*([\d.]+)\s*分。$/, (m, L) =>
-    L === "en" ? `you under-rated yourself by about ${m[1]}.` : m[0]],
+    L === "en" ? `you under-rated yourself by about ${m[1]}.`
+      : L === "tw" ? `你整體低估了約 ${m[1]} 分。` : m[0]],
   [/^请先完成自评（还差\s*(\d+)\s*项）$/, (m, L) =>
-    L === "en" ? `Finish your self-assessment (${m[1]} left)` : m[0]],
+    L === "en" ? `Finish your self-assessment (${m[1]} left)`
+      : L === "tw" ? `請先完成自評（還差 ${m[1]} 項）` : m[0]],
   [/^元认知提示：你整体高估了约\s*([\d.]+)\s*分。$/, (m, L) =>
-    L === "en" ? `Metacognition: you over-rated yourself by about ${m[1]}.` : m[0]],
+    L === "en" ? `Metacognition: you over-rated yourself by about ${m[1]}.`
+      : L === "tw" ? `元認知提示：你整體高估了約 ${m[1]} 分。` : m[0]],
   [/^元认知提示：你整体低估了约\s*([\d.]+)\s*分。$/, (m, L) =>
-    L === "en" ? `Metacognition: you under-rated yourself by about ${m[1]}.` : m[0]],
+    L === "en" ? `Metacognition: you under-rated yourself by about ${m[1]}.`
+      : L === "tw" ? `元認知提示：你整體低估了約 ${m[1]} 分。` : m[0]],
   [/^自评偏差：整体(高估|低估)约\s*([\d.]+)\s*分$/, (m, L) =>
-    L === "en" ? `Self-rating gap: ${m[1] === "高估" ? "over" : "under"}-rated by ${m[2]}` : m[0]],
+    L === "en" ? `Self-rating gap: ${m[1] === "高估" ? "over" : "under"}-rated by ${m[2]}`
+      : L === "tw" ? `自評偏差：整體${m[1]}約 ${m[2]} 分` : m[0]],
   [/^一致性\s*(高|中|低)$/, (m, L) =>
-    L === "en" ? `agreement: ${{"高":"high","中":"medium","低":"low"}[m[1]]}` : m[0]],
+    L === "en" ? `agreement: ${{ "高": "high", "中": "medium", "低": "low" }[m[1]]}` : m[0]],
+  [/^(\d+)\s*个选项$/, (m, L) =>
+    L === "en" ? `${m[1]} option(s)` : L === "tw" ? `${m[1]} 個選項` : m[0]],
+  [/^平均提示级数（(\d+)% 用过提示）$/, (m, L) =>
+    L === "en" ? `Avg. hints used (${m[1]}% used hints)`
+      : L === "tw" ? `平均提示級數（${m[1]}% 用過提示）` : m[0]],
+  [/^平均提示级数（无数据）$/, (m, L) =>
+    L === "en" ? "Avg. hints used (no data)"
+      : L === "tw" ? "平均提示級數（無資料）" : m[0]],
 ];
 
 const LS_KEY = "hs_lang";

@@ -67,6 +67,26 @@ await new Promise((r) => setTimeout(r, 60));
 console.log(`${dyn.nodeValue === "Decisions" ? "PASS" : "FAIL"}  动态渲染 -> ${dyn.nodeValue}`);
 if (dyn.nodeValue !== "Decisions") fail += 1;
 
+// ---- 含变量的界面字符串（曾漏翻的一类）----
+const dynCases = [
+  ["3 个选项", "3 option(s)"],
+  ["平均提示级数（0% 用过提示）", "Avg. hints used (0% used hints)"],
+  ["平均提示级数（无数据）", "Avg. hints used (no data)"],
+  ["你的判断：站得住", "Your judgement: 站得住"],
+  ["总分 9 / 15", "Total 9 / 15"],
+  ["抉择 3 次 · 核对 2 次", "3 decision(s) · 2 check(s)"],
+  ["用了 2 级提示", "used 2 hint(s)"],
+  ["选择：王平", "Choice: 王平"],
+];
+for (const [input, want] of dynCases) {
+  const n = text(input);
+  body.childNodes.push(el("div", [n]));
+  applyI18n();
+  const ok = n.nodeValue === want;
+  if (!ok) fail += 1;
+  console.log(`${ok ? "PASS" : "FAIL"}  ${input} -> ${n.nodeValue}`);
+}
+
 // 切回中文应完整还原
 m.setLang("zh");
 for (const [node, want] of [[h1, "学情分析"], [hero, "汇总学生在「抉择任务」中的论证评分，观察历史思维各维度的整体表现与个体差异。"], [level, "起步"]]) {
