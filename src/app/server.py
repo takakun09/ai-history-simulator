@@ -131,6 +131,35 @@ class Handler(BaseHTTPRequestHandler):
             })
             return self._json({"result": result})
 
+        if path == "/api/check":
+            fig = store.get_figure(body.get("figure_id", ""))
+            if not fig:
+                return self._json({"error": "人物不存在"}, 404)
+            claim = (body.get("claim") or "").strip()
+            verdict = (body.get("verdict") or "").strip()
+            basis = (body.get("basis") or "").strip()
+            if not claim:
+                return self._json({"error": "缺少要核对的说法"}, 400)
+            if not verdict:
+                return self._json({"error": "请选择你的判断"}, 400)
+            if not basis:
+                return self._json({"error": "请写下你的依据"}, 400)
+            try:
+                result = assessment.check_source(
+                    body.get("provider", "mock"), body.get("base_url", ""),
+                    body.get("api_key", ""), body.get("model", ""),
+                    fig, claim, verdict, basis,
+                )
+            except Exception as exc:
+                return self._json({"error": f"{type(exc).__name__}: {exc}"}, 502)
+            import datetime
+            store.save_check({
+                "created_at": datetime.datetime.now().isoformat(timespec="seconds"),
+                "figure_id": fig["id"], "figure": fig.get("name", ""),
+                "claim": claim, "verdict": verdict, "basis": basis, "result": result,
+            })
+            return self._json({"result": result})
+
         return self._json({"error": "not found"}, 404)
 
     # ---------- DELETE ----------

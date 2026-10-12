@@ -27,7 +27,7 @@ function fill(f) {
   $("f_era").value = f.era || ""; $("f_difficulty").value = f.difficulty || ""; $("f_accent").value = f.accent || "#2b4162";
   $("f_tagline").value = f.tagline || ""; $("f_avatar").value = f.avatar || ""; $("f_opening").value = f.opening || "";
   $("f_prompt").value = f.system_prompt || "";
-  $("f_sources").value = (f.sources || []).map(s => [s.title || "", s.kind || "", s.note || ""].join(" | ")).join("\n");
+  $("f_sources").value = (f.sources || []).map(s => [s.title || "", s.kind || "", s.note || "", s.excerpt || ""].join(" | ")).join("\n");
   $("f_questions").value = (f.suggested_questions || []).join("\n");
   $("f_dilemmas").value = dilemmasToText(f.dilemmas);
   $("f_published").checked = !!f.published;
@@ -57,8 +57,8 @@ function collect() {
     tagline: $("f_tagline").value.trim(), avatar: $("f_avatar").value.trim(), opening: $("f_opening").value,
     system_prompt: $("f_prompt").value,
     sources: $("f_sources").value.split("\n").map(l => l.trim()).filter(Boolean).map(l => {
-      const [title, kind, note] = l.split("|").map(s => (s || "").trim());
-      return { title, kind, note };
+      const [title, kind, note, excerpt] = l.split("|").map(s => (s || "").trim());
+      return { title, kind, note, excerpt };
     }),
     suggested_questions: $("f_questions").value.split("\n").map(l => l.trim()).filter(Boolean),
     dilemmas: parseDilemmas($("f_dilemmas").value),

@@ -88,3 +88,61 @@ def evaluate(provider_id, base_url, api_key, model, figure, dilemma, choice_text
         [{"role": "user", "content": user}], figure_name=figure.get("name", ""),
     )
     return parse_result(reply)
+
+
+# ---------------------------------------------------------------------------
+# 史料核对（P0-2）
+# ---------------------------------------------------------------------------
+def _sources_text(sources):
+    lines = []
+    for s in sources or []:
+        line = f"- {s.get('title', '')}（{s.get('kind', '')}）"
+        if s.get("excerpt"):
+            line += f"：{s['excerpt']}"
+        lines.append(line)
+    return "\n".join(lines) or "（该人物暂无史料）"
+
+
+def parse_check(text):
+    match = re.search(r"\{.*\}", text or "", re.S)
+    if not match:
+        return {"error": "无法解析模型返回", "raw": (text or "")[:400]}
+    try:
+        return json.loads(match.group(0))
+    except json.JSONDecodeError:
+        return {"error": "无法解析模型返回", "raw": (text or "")[:400]}
+
+
+def _mock_check(verdict, basis):
+    ok = len(basis or "") >= 40
+    return {
+        "verdict": "站得住" if ok else "部分成立",
+        "reason": "你给出了明确判断，并陈述了依据。" if ok else "你有判断，但依据还不够具体。",
+        "suggestion": "" if ok else "指出具体是哪一份史料、哪一句与这段说法有关。",
+        "reference": "（离线演示）请对照史料摘要，自行判断这段说法属于「相符」「有出入」还是「史料未涉及」。",
+    }
+
+
+def check_source(provider_id, base_url, api_key, model, figure, claim, verdict, basis):
+    if provider_id == "mock":
+        return _mock_check(verdict, basis)
+    system = (
+        "你是历史教学中的「史料裁判」。学生正在核对一段 AI 历史人物的说法是否与史料相符。"
+        "请判断学生的判断是否站得住，并给出改进建议。只输出 JSON，不要输出其它文字。"
+    )
+    user = f"""【AI 的历史人物说法】{claim}
+
+【可对照的史料】
+{_sources_text(figure.get("sources", []))}
+
+【学生的判断】{verdict}
+【学生的依据】{basis}
+
+请只输出 JSON：
+{{"verdict":"站得住|部分成立|站不住","reason":"为什么（中文，2-3 句）",
+"suggestion":"如何改进核查（中文，1-2 句）","reference":"关于这段说法与史料关系的参照判断（中文，1-2 句）"}}"""
+    reply = providers.chat(
+        provider_id, base_url, api_key, model, system,
+        [{"role": "user", "content": user}], figure_name=figure.get("name", ""),
+    )
+    return parse_check(reply)

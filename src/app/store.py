@@ -1,35 +1,61 @@
 # -*- coding: utf-8 -*-
-"""人物数据的持久化（data/figures.json）。"""
+"""数据持久化。
+
+- seed.py 是「默认内容」的唯一来源，并带 SEED_VERSION；
+  存储文件的版本与代码不一致时，按 seed 重建（演示阶段简化：会覆盖教师端改动）。
+- 学生提交（抉择论证、史料核对）追加保存在 data/ 下。
+"""
+import copy
 import json
 import threading
 from pathlib import Path
 
-from .seed import DEFAULT_FIGURES
+from .seed import DEFAULT_FIGURES, SEED_VERSION
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data"
 FIGURES_FILE = DATA_DIR / "figures.json"
+SUBMISSIONS_FILE = DATA_DIR / "submissions.json"
+CHECKS_FILE = DATA_DIR / "checks.json"
 _lock = threading.Lock()
 
 
-def _write(figs):
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    tmp = FIGURES_FILE.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(figs, f, ensure_ascii=False, indent=2)
-    tmp.replace(FIGURES_FILE)
-
-
-def _read():
-    if not FIGURES_FILE.exists():
-        _write(DEFAULT_FIGURES)
-    with open(FIGURES_FILE, encoding="utf-8") as f:
+def _read_json(path, default):
+    if not path.exists():
+        return default
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
+
+
+def _write_json(path, obj):
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(obj, f, ensure_ascii=False, indent=2)
+    tmp.replace(path)
+
+
+# ---------- 历史人物 ----------
+def _read_figures():
+    data = _read_json(FIGURES_FILE, None)
+    if data is None:
+        _write_figures(DEFAULT_FIGURES)
+        return copy.deepcopy(DEFAULT_FIGURES)
+    if isinstance(data, list):  # 旧格式：纯列表
+        data = {"seed_version": None, "figures": data}
+    if data.get("seed_version") != SEED_VERSION:
+        _write_figures(DEFAULT_FIGURES)
+        return copy.deepcopy(DEFAULT_FIGURES)
+    return data.get("figures", [])
+
+
+def _write_figures(figs):
+    _write_json(FIGURES_FILE, {"seed_version": SEED_VERSION, "figures": figs})
 
 
 def list_figures(published_only=False):
     with _lock:
-        figs = _read()
+        figs = _read_figures()
     if published_only:
         figs = [f for f in figs if f.get("published")]
     return figs
@@ -44,52 +70,47 @@ def get_figure(fid):
 
 def upsert_figure(fig):
     with _lock:
-        figs = _read()
+        figs = _read_figures()
         for i, f in enumerate(figs):
             if f.get("id") == fig.get("id"):
                 figs[i] = {**f, **fig}
                 break
         else:
             figs.append(fig)
-        _write(figs)
+        _write_figures(figs)
     return get_figure(fig.get("id"))
 
 
 def delete_figure(fid):
     with _lock:
-        figs = _read()
+        figs = _read_figures()
         kept = [f for f in figs if f.get("id") != fid]
-        _write(kept)
+        _write_figures(kept)
     return len(kept) != len(figs)
 
 
-# ---------- 抉择提交记录（P0-1） ----------
-SUBMISSIONS_FILE = DATA_DIR / "submissions.json"
-
-
-def _read_submissions():
-    if not SUBMISSIONS_FILE.exists():
-        return []
-    with open(SUBMISSIONS_FILE, encoding="utf-8") as f:
-        return json.load(f)
-
-
-def _write_submissions(rows):
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    tmp = SUBMISSIONS_FILE.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(rows, f, ensure_ascii=False, indent=2)
-    tmp.replace(SUBMISSIONS_FILE)
+# ---------- 通用记录（抉择提交 / 史料核对） ----------
+def _append(path, rec):
+    with _lock:
+        rows = _read_json(path, [])
+        rows.append(rec)
+        _write_json(path, rows)
+    return rec
 
 
 def save_submission(rec):
-    with _lock:
-        rows = _read_submissions()
-        rows.append(rec)
-        _write_submissions(rows)
-    return rec
+    return _append(SUBMISSIONS_FILE, rec)
 
 
 def list_submissions():
     with _lock:
-        return _read_submissions()
+        return _read_json(SUBMISSIONS_FILE, [])
+
+
+def save_check(rec):
+    return _append(CHECKS_FILE, rec)
+
+
+def list_checks():
+    with _lock:
+        return _read_json(CHECKS_FILE, [])
