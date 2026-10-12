@@ -30,6 +30,9 @@ async function load() {
     <div class="stat"><b>${(d.hint_usage && d.hint_usage.n) ? d.hint_usage.avg : "—"}</b><span>平均提示级数（${(d.hint_usage && d.hint_usage.n) ? d.hint_usage.used_share + "% 用过提示" : "无数据"}）</span></div>
     <div class="stat"><b>${typeof d.self_gap === "number" ? (d.self_gap > 0 ? "+" : "") + d.self_gap.toFixed(1) : "—"}</b><span>自评偏差（正=高估）</span></div>`;
 
+  const meanings = {};
+  guide.dimensions.forEach((d) => { meanings[d.key] = d.meaning; });
+
   const dims = document.getElementById("dims");
   if (!p.count) {
     dims.innerHTML = '<div class="empty">还没有学生提交。</div>';
@@ -37,7 +40,8 @@ async function load() {
     dims.innerHTML = guide.dimensions.map((dim) => {
       const v = p.per_dimension[dim.key] || { pct: 0, avg: "—", max: 3 };
       const chip = v.level ? `<span class="lv lv-${v.level_key}">${esc(v.level)}</span>` : "";
-      return `<div class="dim-row"><div>${esc(dim.name)}</div>
+      const label = `<span class="tip" tabindex="0" data-tip="${esc(meanings[dim.key] || "")}">${esc(dim.name)}<i>ⓘ</i></span>`;
+      return `<div class="dim-row"><div>${label}</div>
         <div class="dim-bar"><i style="width:${v.pct}%"></i></div>
         <div class="dim-val">${v.avg} / ${v.max} ${chip}</div></div>`;
     }).join("")

@@ -353,8 +353,11 @@ function renderCheckResult(r) {
 /* ---------- 历史思维画像（P0-3） ---------- */
 async function loadProfile() {
   try {
-    const { profile: p } = await api(`/api/profile?student_id=${encodeURIComponent(STUDENT)}`);
-    renderProfile(p);
+    const [resp] = await Promise.all([
+      api(`/api/profile?student_id=${encodeURIComponent(STUDENT)}`),
+      getGuide(),
+    ]);
+    renderProfile(resp.profile);
   } catch (e) { /* 静默失败，不打断对话 */ }
 }
 
@@ -366,10 +369,16 @@ function renderProfile(p) {
     return;
   }
   const bk = p.by_kind || {};
+  const meaningOf = {};
+  if (rubricGuide) rubricGuide.dimensions.forEach((x) => { meaningOf[x.key] = x.meaning; });
+
   const rows = RUBRIC.map(([k, name]) => {
     const d = p.per_dimension[k];
     const chip = d.level ? `<span class="lv lv-${d.level_key}">${esc(d.level)}</span>` : "";
-    return `<div class="prof-row"><span>${name}</span>
+    const label = meaningOf[k]
+      ? `<span class="tip" tabindex="0" data-tip="${esc(meaningOf[k])}">${esc(name)}<i>ⓘ</i></span>`
+      : esc(name);
+    return `<div class="prof-row"><span>${label}</span>
       <span class="bar"><i style="width:${d.pct || 0}%"></i></span>
       <b>${d.avg == null ? "—" : d.avg}</b>${chip}</div>`;
   }).join("");
@@ -388,11 +397,14 @@ function renderProfile(p) {
 /* ---------- 指标说明（P0-5） ---------- */
 let rubricGuide = null;
 
+async function getGuide() {
+  if (rubricGuide) return rubricGuide;
+  try { rubricGuide = await api("/api/rubric"); } catch (e) { rubricGuide = null; }
+  return rubricGuide;
+}
+
 async function openGuide() {
-  if (!rubricGuide) {
-    try { rubricGuide = await api("/api/rubric"); }
-    catch (e) { return; }
-  }
+  if (!(await getGuide())) return;
   $("mTitle").textContent = "指标说明与水平划分";
   $("mBody").innerHTML = `
     <div style="font-size:13px;color:var(--muted);margin-bottom:10px">
