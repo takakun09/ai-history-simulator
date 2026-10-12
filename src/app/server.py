@@ -9,7 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from . import assessment, profile, providers, store
+from . import assessment, profile, providers, rubric, store
 
 ROOT = Path(__file__).resolve().parents[2]
 WEB = ROOT / "web"
@@ -63,6 +63,8 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/figures":
             scope = (query.get("scope") or ["student"])[0]
             return self._json({"figures": store.list_figures(published_only=(scope == "student"))})
+        if path == "/api/rubric":
+            return self._json(rubric.guide_payload())
         if path == "/api/profile":
             sid = (query.get("student_id") or [""])[0]
             rows = [r for r in store.list_submissions()

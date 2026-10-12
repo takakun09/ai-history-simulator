@@ -262,3 +262,23 @@ button{font:inherit;cursor:pointer}
 .gap.over{background:#fdeaea;color:#c0392b}
 .gap.under{background:#e9f0fb;color:#3a6ea5}
 .gap.even{background:#eef2f8;color:#5a6a85}
+
+/* ---------- 水平档位与指标说明 ---------- */
+.lv{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;font-weight:600;
+  white-space:nowrap;vertical-align:middle}
+.lv small{font-weight:400;opacity:.8;margin-left:3px}
+.lv-start{background:#fdeaea;color:#c0392b}
+.lv-basic{background:#fef7ec;color:#b8860b}
+.lv-good{background:#e9f0fb;color:#3a6ea5}
+.lv-mature{background:#e6f6ec;color:#2f9e63}
+.level-strip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.guard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.gcard{border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:#fbfcfe}
+.gcard b{display:block;font-size:14px;color:var(--brand);margin-bottom:6px}
+.gcard p{margin:0 0 9px;font-size:12.5px;line-height:1.65;color:var(--ink)}
+.gcard .gl{font-size:12px;line-height:1.6;color:var(--muted);display:flex;gap:7px;align-items:flex-start;margin-top:5px}
+.tag{flex:0 0 auto;font-size:10.5px;padding:1px 6px;border-radius:6px;font-weight:600;margin-top:1px}
+.tag.low{background:#f2f4f7;color:#7a8595}
+.tag.high{background:#e6f6ec;color:#2f9e63}
+.prof-row{grid-template-columns:64px 1fr 30px auto}
+.dim-val .lv{margin-left:6px}

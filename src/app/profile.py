@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """历史思维画像（P0-3 / P0-4）：汇总抉择评分与史料核对，并给出自评偏差。"""
 from .assessment import MAX_PER_ITEM, RUBRIC
+from .rubric import level_for
 
 DIM_NAMES = {key: name for key, name, _ in RUBRIC}
 
@@ -40,9 +41,13 @@ def build_profile(rows):
         gap = round(self_avg - avg, 2) if (avg is not None and self_avg is not None) else None
         if gap is not None:
             gaps.append(gap)
+        level = level_for(avg)
         per_dimension[k] = {
             "name": DIM_NAMES[k],
             "avg": avg,
+            "level": level["label"] if level else None,
+            "level_key": level["key"] if level else None,
+            "level_desc": level["desc"] if level else None,
             "self_avg": self_avg,
             "gap": gap,
             "n": counts[k],

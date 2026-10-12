@@ -368,9 +368,10 @@ function renderProfile(p) {
   const bk = p.by_kind || {};
   const rows = RUBRIC.map(([k, name]) => {
     const d = p.per_dimension[k];
+    const chip = d.level ? `<span class="lv lv-${d.level_key}">${esc(d.level)}</span>` : "";
     return `<div class="prof-row"><span>${name}</span>
       <span class="bar"><i style="width:${d.pct || 0}%"></i></span>
-      <b>${d.avg == null ? "—" : d.avg}</b></div>`;
+      <b>${d.avg == null ? "—" : d.avg}</b>${chip}</div>`;
   }).join("");
   const gapNote = (typeof p.overall_gap === "number" && Math.abs(p.overall_gap) >= 0.34)
     ? `<div class="fb warn" style="margin-top:10px">自评偏差：整体${p.overall_gap > 0 ? "高估" : "低估"}约 ${Math.abs(p.overall_gap).toFixed(1)} 分</div>` : "";
@@ -378,7 +379,33 @@ function renderProfile(p) {
       抉择 ${bk.decision || 0} 次 · 核对 ${bk.check || 0} 次</div>
     ${rows}
     ${p.weakest ? `<div class="fb warn" style="margin-top:10px">最需要加强：<b>${esc(p.per_dimension[p.weakest].name)}</b></div>` : ""}
-    ${gapNote}`;
+    ${gapNote}
+    <button type="button" class="btn ghost small" id="guideBtn">📖 指标说明与水平划分</button>`;
+  const gb = $("guideBtn");
+  if (gb) gb.onclick = openGuide;
+}
+
+/* ---------- 指标说明（P0-5） ---------- */
+let rubricGuide = null;
+
+async function openGuide() {
+  if (!rubricGuide) {
+    try { rubricGuide = await api("/api/rubric"); }
+    catch (e) { return; }
+  }
+  $("mTitle").textContent = "指标说明与水平划分";
+  $("mBody").innerHTML = `
+    <div style="font-size:13px;color:var(--muted);margin-bottom:10px">
+      五个指标各 0–3 分。下面是它们的意思，以及不同分数段代表的水平。</div>
+    <div class="level-strip">${rubricGuide.levels.map((l) => `
+      <span class="lv lv-${l.key}">${esc(l.label)}
+        <small>${l.min}–${l.max > 3 ? 3 : l.max} 分</small></span>`).join("")}</div>
+    <div class="guard-grid">${rubricGuide.dimensions.map((d) => `
+      <div class="gcard"><b>${esc(d.name)}</b><p>${esc(d.meaning)}</p>
+        <div class="gl"><span class="tag low">低</span>${esc(d.low)}</div>
+        <div class="gl"><span class="tag high">高</span>${esc(d.high)}</div>
+      </div>`).join("")}</div>`;
+  $("modal").hidden = false;
 }
 
 /* ---------- 快捷追问（P0-4） ---------- */

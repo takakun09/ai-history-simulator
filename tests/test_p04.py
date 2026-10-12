@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.app import assessment, profile, server, store
+from src.app import assessment, profile, rubric, server, store
 
 
 def post(path, payload):
@@ -23,6 +23,33 @@ def post(path, payload):
     h.end_headers = lambda: None
     h.do_POST()
     return h._status, json.loads(h.wfile.getvalue().decode("utf-8"))
+
+
+class RubricGuideTest(unittest.TestCase):
+    def test_level_bands(self):
+        self.assertEqual(rubric.level_for(0.0)["label"], "起步")
+        self.assertEqual(rubric.level_for(0.74)["label"], "起步")
+        self.assertEqual(rubric.level_for(0.75)["label"], "初步")
+        self.assertEqual(rubric.level_for(1.4)["label"], "初步")
+        self.assertEqual(rubric.level_for(1.5)["label"], "较好")
+        self.assertEqual(rubric.level_for(2.5)["label"], "成熟")
+        self.assertEqual(rubric.level_for(3.0)["label"], "成熟")
+        self.assertIsNone(rubric.level_for(None))
+
+    def test_guide_payload_shape(self):
+        g = rubric.guide_payload()
+        self.assertEqual(len(g["dimensions"]), 5)
+        self.assertEqual(len(g["levels"]), 4)
+        for d in g["dimensions"]:
+            for field in ("key", "name", "meaning", "low", "high"):
+                self.assertTrue(d.get(field))
+
+    def test_profile_attaches_level(self):
+        p = profile.build_profile([{"kind": "decision",
+                                    "result": {"scores": {"sourcing": 3, "corroboration": 0}}}])
+        self.assertEqual(p["per_dimension"]["sourcing"]["level"], "成熟")
+        self.assertEqual(p["per_dimension"]["corroboration"]["level"], "起步")
+        self.assertIsNone(p["per_dimension"]["argumentation"]["level"])
 
 
 class CheckScoresTest(unittest.TestCase):
