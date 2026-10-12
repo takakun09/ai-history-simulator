@@ -2,22 +2,20 @@ import { api, esc } from "/assets/app.js";
 
 const $ = (id) => document.getElementById(id);
 const SOURCE_KINDS = ["一手", "二手", "正史", "文献", "图像", "考古"];
+const EDITOR = document.querySelector(".editor");
 
 let figures = [];
 let current = null;
 let draft = null;
+let savedSnapshot = "";
 
 /* ---------------- 加载与列表 ---------------- */
 async function load() {
   const r = await api("/api/figures?scope=teacher");
   figures = r.figures;
   renderList();
-  if (figures.length) {
-    const keep = figures.some((f) => f.id === current);
-    select(keep ? current : figures[0].id);
-  } else {
-    blank();
-  }
+  if (figures.length) select(figures.some((f) => f.id === current) ? current : figures[0].id, true);
+  else blank(true);
 }
 
 function renderList() {
@@ -27,19 +25,19 @@ function renderList() {
       <div class="t"><b>${esc(f.name)}</b><small>${esc(f.era || "")}</small></div>
       <span class="badge ${f.published ? "on" : "off"}">${f.published ? "已发布" : "未发布"}</span>
     </div>`).join("") || '<div class="empty">还没有人物。</div>';
-  $("list").querySelectorAll(".fig-item").forEach((el) => {
-    el.onclick = () => select(el.dataset.id);
-  });
+  $("list").querySelectorAll(".fig-item").forEach((el) => { el.onclick = () => select(el.dataset.id); });
 }
 
-function select(id) {
+function select(id, force = false) {
+  if (!force && current !== id && !confirmDiscard("切换人物")) return renderList();
   current = id;
   renderList();
   const f = figures.find((x) => x.id === id);
   if (f) fill(f);
 }
 
-function blank() {
+function blank(force = false) {
+  if (!force && !confirmDiscard("新建人物")) return;
   current = null;
   renderList();
   fill({
@@ -49,6 +47,27 @@ function blank() {
   });
   $("title").textContent = "新建历史人物";
 }
+
+/* ---------------- 未保存提醒 ---------------- */
+function isDirty() {
+  if (!draft || !savedSnapshot) return false;
+  try { return JSON.stringify(collect()) !== savedSnapshot; } catch { return false; }
+}
+
+function refreshDirty() {
+  const base = draft && draft.name ? `编辑：${draft.name}` : "新建历史人物";
+  $("title").textContent = isDirty() ? base + " · ● 未保存" : base;
+  if (isDirty()) $("status").textContent = "有未保存的修改";
+}
+
+function confirmDiscard(action) {
+  if (!isDirty()) return true;
+  return confirm(`当前有未保存的修改，${action}后将丢失。确定继续吗？`);
+}
+
+window.addEventListener("beforeunload", (e) => {
+  if (isDirty()) { e.preventDefault(); e.returnValue = ""; }
+});
 
 /* ---------------- 填充 ---------------- */
 function fill(f) {
@@ -70,13 +89,14 @@ function fill(f) {
   $("f_prompt").value = draft.system_prompt || "";
   $("f_published").checked = !!draft.published;
   $("test").href = draft.id ? `/chat?figure=${encodeURIComponent(draft.id)}` : "#";
-  $("title").textContent = draft.name ? `编辑：${draft.name}` : "新建历史人物";
   $("status").textContent = "";
 
   renderSources();
   renderQuestions();
   renderDilemmas();
   switchTab("basic");
+  savedSnapshot = JSON.stringify(collect());
+  refreshDirty();
 }
 
 function switchTab(name) {
@@ -91,6 +111,49 @@ function updateCounts() {
   $("cntDilemmas").textContent = draft.dilemmas.length;
 }
 
+/* ---------------- 拖拽排序 ---------------- */
+let dragItem = null, dragContainer = null, dragSelector = null, dragOnDone = null;
+
+function getDragAfterElement(container, y, selector) {
+  const els = [...container.querySelectorAll(`${selector}:not(.dragging)`)];
+  return els.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    return offset < 0 && offset > closest.offset ? { offset, element: child } : closest;
+  }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+}
+
+function makeSortable(container, selector, onDone) {
+  container.querySelectorAll(selector).forEach((item) => {
+    const handle = item.querySelector(".drag-handle");
+    if (!handle) return;
+    handle.draggable = true;
+    handle.addEventListener("dragstart", (e) => {
+      dragItem = item; dragContainer = container; dragSelector = selector; dragOnDone = onDone;
+      item.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      try { e.dataTransfer.setData("text/plain", ""); } catch (_) { /* ignore */ }
+    });
+    handle.addEventListener("dragend", () => {
+      item.classList.remove("dragging");
+      if (dragContainer === container && typeof dragOnDone === "function") {
+        onDone([...container.querySelectorAll(selector)].map((el) => +el.dataset.i));
+      }
+      dragItem = dragContainer = dragOnDone = null;
+    });
+  });
+  if (!container._dragBound) {
+    container._dragBound = true;
+    container.addEventListener("dragover", (e) => {
+      if (!dragItem || dragContainer !== container) return;
+      e.preventDefault();
+      const after = getDragAfterElement(container, e.clientY, dragSelector);
+      if (after == null) container.appendChild(dragItem);
+      else container.insertBefore(dragItem, after);
+    });
+  }
+}
+
 /* ---------------- 史料 ---------------- */
 const isCustomKind = (k) => !!k && !SOURCE_KINDS.includes(k);
 
@@ -101,16 +164,18 @@ function kindOptionsHtml(kind) {
   return known + `<option value="__custom__" ${isCustomKind(kind) ? "selected" : ""}>自定义…</option>`;
 }
 
+const HANDLE = '<span class="drag-handle" title="拖拽排序">⠿</span>';
+
 function renderSources() {
-  const rows = draft.sources.map((s, i) => `
-    <div class="list-row" data-i="${i}">
+  $("sourcesList").innerHTML = draft.sources.map((s, i) => `
+    <div class="list-row sortable-item" data-i="${i}">
       <div class="rowhead">
+        ${HANDLE}
         <input class="grow" data-k="title" value="${esc(s.title || "")}" placeholder="史料标题，如《出师表》">
         <button class="icon-btn" data-act="del-source" title="删除这份史料">✕</button>
       </div>
       <div class="grid2">
-        <div>
-          <span class="mini">类型</span>
+        <div><span class="mini">类型</span>
           <select data-k="kind">${kindOptionsHtml(s.kind)}</select>
           <input data-k="kind_custom" class="kind-custom" placeholder="输入自定义类型"
                  value="${isCustomKind(s.kind) ? esc(s.kind) : ""}" ${isCustomKind(s.kind) ? "" : "hidden"}>
@@ -120,19 +185,21 @@ function renderSources() {
       </div>
       <div><span class="mini">摘要 / 可对照原文（学生核对时看到）</span>
         <textarea data-k="excerpt" rows="2" placeholder="填原文节选或要点">${esc(s.excerpt || "")}</textarea></div>
-    </div>`).join("");
-  $("sourcesList").innerHTML = rows || '<div class="empty">还没有史料，点下面按钮添加。</div>';
+    </div>`).join("") || '<div class="empty">还没有史料，点下面按钮添加。</div>';
 
   $("sourcesList").querySelectorAll(".list-row").forEach((row) => {
     const i = +row.dataset.i;
     row.querySelectorAll("[data-k]").forEach((el) => {
-      const handler = () => onSourceInput(i, el);
+      const handler = () => { onSourceInput(i, el); refreshDirty(); };
       el.addEventListener("input", handler);
       el.addEventListener("change", handler);
     });
     row.querySelector('[data-act="del-source"]').onclick = () => {
-      draft.sources.splice(i, 1); renderSources(); updateCounts();
+      draft.sources.splice(i, 1); renderSources(); updateCounts(); refreshDirty();
     };
+  });
+  makeSortable($("sourcesList"), ".sortable-item", (order) => {
+    draft.sources = order.map((i) => draft.sources[i]); renderSources(); refreshDirty();
   });
   updateCounts();
 }
@@ -153,8 +220,9 @@ function onSourceInput(i, el) {
 /* ---------------- 建议问题 ---------------- */
 function renderQuestions() {
   $("questionsList").innerHTML = draft.suggested_questions.map((q, i) => `
-    <div class="list-row" data-i="${i}">
+    <div class="list-row sortable-item" data-i="${i}">
       <div class="rowhead">
+        ${HANDLE}
         <input class="grow" data-k="q" value="${esc(q || "")}" placeholder="如：丞相，您为何执意北伐？">
         <button class="icon-btn" data-act="del-q" title="删除">✕</button>
       </div>
@@ -162,10 +230,15 @@ function renderQuestions() {
 
   $("questionsList").querySelectorAll(".list-row").forEach((row) => {
     const i = +row.dataset.i;
-    row.querySelector("[data-k=q]").addEventListener("input", (e) => { draft.suggested_questions[i] = e.target.value; });
+    row.querySelector("[data-k=q]").addEventListener("input", (e) => {
+      draft.suggested_questions[i] = e.target.value; refreshDirty();
+    });
     row.querySelector('[data-act="del-q"]').onclick = () => {
-      draft.suggested_questions.splice(i, 1); renderQuestions(); updateCounts();
+      draft.suggested_questions.splice(i, 1); renderQuestions(); updateCounts(); refreshDirty();
     };
+  });
+  makeSortable($("questionsList"), ".sortable-item", (order) => {
+    draft.suggested_questions = order.map((i) => draft.suggested_questions[i]); renderQuestions(); refreshDirty();
   });
   updateCounts();
 }
@@ -173,8 +246,9 @@ function renderQuestions() {
 /* ---------------- 抉择节点 ---------------- */
 function renderDilemmas() {
   $("dilemmasList").innerHTML = draft.dilemmas.map((d, i) => `
-    <div class="dilemma-card" data-i="${i}">
+    <div class="dilemma-card sortable-item" data-i="${i}">
       <div class="rowhead">
+        ${HANDLE}
         <input class="grow" data-k="title" value="${esc(d.title || "")}" placeholder="抉择标题，如：街亭用人">
         <button class="icon-btn" data-act="del-dilemma" title="删除这个抉择">✕</button>
       </div>
@@ -182,10 +256,11 @@ function renderDilemmas() {
       <textarea data-k="scenario" rows="3" placeholder="给学生描述这个历史抉择场景">${esc(d.scenario || "")}</textarea>
       <span class="mini">提示（可选）</span>
       <input data-k="hint" value="${esc(d.hint || "")}" placeholder="给学生一点思考方向">
-      <span class="mini">选项（学生从中选择）</span>
+      <span class="mini">选项（可拖拽排序）</span>
       <div data-opts>
         ${(d.options || []).map((o, j) => `
-          <div class="opt-row" data-j="${j}">
+          <div class="opt-row sortable-item" data-i="${j}">
+            ${HANDLE}
             <input data-ok="text" value="${esc(o.text || "")}" placeholder="选项内容">
             <button class="icon-btn" data-act="del-option" title="删除选项">✕</button>
           </div>`).join("")}
@@ -196,24 +271,29 @@ function renderDilemmas() {
   $("dilemmasList").querySelectorAll(".dilemma-card").forEach((card) => {
     const i = +card.dataset.i;
     card.querySelectorAll("[data-k]").forEach((el) => {
-      el.addEventListener("input", () => { draft.dilemmas[i][el.dataset.k] = el.value; });
+      el.addEventListener("input", () => { draft.dilemmas[i][el.dataset.k] = el.value; refreshDirty(); });
     });
     card.querySelector('[data-act="del-dilemma"]').onclick = () => {
-      draft.dilemmas.splice(i, 1); renderDilemmas(); updateCounts();
+      draft.dilemmas.splice(i, 1); renderDilemmas(); updateCounts(); refreshDirty();
     };
     card.querySelector('[data-act="add-option"]').onclick = () => {
       draft.dilemmas[i].options = draft.dilemmas[i].options || [];
       draft.dilemmas[i].options.push({ id: "opt" + (draft.dilemmas[i].options.length + 1), text: "" });
-      renderDilemmas();
+      renderDilemmas(); refreshDirty();
     };
-    card.querySelectorAll(".opt-row").forEach((rowEl) => {
-      const j = +rowEl.dataset.j;
+    const optBox = card.querySelector("[data-opts]");
+    optBox.querySelectorAll(".opt-row").forEach((rowEl) => {
+      const j = +rowEl.dataset.i;
       rowEl.querySelector("[data-ok=text]").addEventListener("input", (e) => {
-        draft.dilemmas[i].options[j].text = e.target.value;
+        draft.dilemmas[i].options[j].text = e.target.value; refreshDirty();
       });
       rowEl.querySelector('[data-act="del-option"]').onclick = () => {
-        draft.dilemmas[i].options.splice(j, 1); renderDilemmas();
+        draft.dilemmas[i].options.splice(j, 1); renderDilemmas(); refreshDirty();
       };
+    });
+    makeSortable(optBox, ".sortable-item", (order) => {
+      const opts = draft.dilemmas[i].options;
+      draft.dilemmas[i].options = order.map((j) => opts[j]); renderDilemmas(); refreshDirty();
     });
   });
   updateCounts();
@@ -256,9 +336,9 @@ async function save() {
   if (!fig.id) { $("status").textContent = "⚠️ 请填写唯一 ID（英文）"; switchTab("basic"); return; }
   try {
     await api("/api/figures", { method: "POST", body: JSON.stringify(fig) });
-    $("status").textContent = "✅ 已保存并发布";
     current = fig.id;
     await load();
+    $("status").textContent = "✅ 已保存并发布";
   } catch (e) { $("status").textContent = "保存失败：" + e.message; }
 }
 
@@ -272,21 +352,23 @@ async function del() {
 }
 
 /* ---------------- 事件绑定 ---------------- */
-$("addSource").onclick = () => { draft.sources.push({ title: "", kind: "一手", note: "", excerpt: "" }); renderSources(); };
-$("addQuestion").onclick = () => { draft.suggested_questions.push(""); renderQuestions(); };
+$("addSource").onclick = () => { draft.sources.push({ title: "", kind: "一手", note: "", excerpt: "" }); renderSources(); refreshDirty(); };
+$("addQuestion").onclick = () => { draft.suggested_questions.push(""); renderQuestions(); refreshDirty(); };
 $("addDilemma").onclick = () => {
   draft.dilemmas.push({ id: "d" + (draft.dilemmas.length + 1), title: "", scenario: "", hint: "",
                         rubric_focus: [], options: [{ id: "opt1", text: "" }, { id: "opt2", text: "" }] });
-  renderDilemmas();
-  switchTab("dilemmas");
+  renderDilemmas(); switchTab("dilemmas"); refreshDirty();
 };
 $("save").onclick = save;
 $("del").onclick = del;
-$("new").onclick = blank;
+$("new").onclick = () => blank();
 
-$("f_accent_color").addEventListener("input", (e) => { $("f_accent").value = e.target.value; });
+$("f_accent_color").addEventListener("input", (e) => { $("f_accent").value = e.target.value; refreshDirty(); });
 $("f_accent").addEventListener("input", (e) => {
   if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) $("f_accent_color").value = e.target.value;
+  refreshDirty();
 });
+EDITOR.addEventListener("input", refreshDirty);
+EDITOR.addEventListener("change", refreshDirty);
 
 load();

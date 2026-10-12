@@ -209,3 +209,9 @@ button{font:inherit;cursor:pointer}
 .actionbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;bottom:0;
   background:#fff;border-top:1px solid var(--line);padding:14px 0 2px;margin-top:20px}
 #status{color:var(--muted);font-size:13px}
+
+/* ---------- 拖拽排序 ---------- */
+.drag-handle{cursor:grab;color:#aab3c0;font-size:15px;user-select:none;padding:0 2px;flex:0 0 auto;line-height:1}
+.drag-handle:hover{color:#6b7686}
+.drag-handle:active{cursor:grabbing}
+.sortable-item.dragging{opacity:.55;outline:2px dashed #9fc0e6;outline-offset:2px}
