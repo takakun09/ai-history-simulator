@@ -77,3 +77,31 @@ python3 -m unittest discover -s tests -v
 - 人物卡通形象为**手工 SVG**（可替换）。
 - 对话数据目前**不落库**，刷新页面即清空；人物配置存于 `data/figures.json`。
 - 历史人物为**教学模拟**，允许展现立场与时代局限，不代表史实定论。
+
+## 常见问题（Troubleshooting）
+
+### 1. `SSL: CERTIFICATE_VERIFY_FAILED` / `unable to get local issuer certificate`
+**原因**：python.org 版 Python 在 macOS 上没有安装根证书（默认 cafile 为空）。
+程序现已**自动使用系统证书包** `/etc/ssl/cert.pem`，通常无需处理。
+若仍报错：
+- 运行一次 `/Applications/Python 3.14/Install Certificates.command`；或
+- 启动时指定：`SSL_CERT_FILE=/etc/ssl/cert.pem python3 -m src.app.server`
+
+### 2. `Base URL 必须以 http:// 或 https:// 开头`
+Base URL 填错了，必须是完整网址：
+- DeepSeek：`https://api.deepseek.com`（或 `https://api.deepseek.com/v1`）
+- OpenAI：`https://api.openai.com/v1`
+- 本地 Ollama：`http://localhost:11434/v1`
+
+### 3. `HTTP 400` / `model not found`
+模型名不对。常见正确值：
+- DeepSeek：`deepseek-chat` 或 `deepseek-reasoner`
+  （**不是**「DeepSeek v4 Flash」这类应用内模型名）
+- OpenAI：官方模型 id，如 `gpt-4o-mini`
+- Ollama：本机 `ollama list` 里的名字，如 `qwen2.5:7b`
+
+### 4. `HTTP 401` / Authentication
+API Key 无效，或该 Key 没有这个接口的权限。
+
+### 5. 回复一直是模拟内容
+检查对话框下方「API 接口」是否还停在「离线演示」。
