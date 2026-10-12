@@ -2,39 +2,64 @@
   <defs>
     <clipPath id="zl-clip"><circle cx="200" cy="200" r="200"/></clipPath>
     <linearGradient id="zl-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#e6f3ec"/><stop offset="1" stop-color="#c9e3d6"/>
+      <stop offset="0" stop-color="#e7f1fb"/><stop offset="1" stop-color="#c9dcef"/>
     </linearGradient>
   </defs>
   <g clip-path="url(#zl-clip)">
     <rect width="400" height="400" fill="url(#zl-bg)"/>
-    <!-- 衣袍 -->
-    <path d="M52 400 Q70 300 200 292 Q330 300 348 400 Z" fill="#2f6f5e"/>
-    <path d="M120 302 Q200 374 280 302 L262 295 Q200 346 138 295 Z" fill="#245a4c" opacity=".5"/>
-    <!-- 交领 -->
-    <path d="M152 294 L200 364 L248 294" fill="none" stroke="#eef5f1" stroke-width="24" stroke-linejoin="round" stroke-linecap="round"/>
-    <path d="M152 294 L200 364 L248 294" fill="none" stroke="#d8e5dd" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+
+    <!-- 羽扇 -->
+    <g transform="translate(298,338) rotate(-14)">
+      <path d="M0 0 Q-46 -22 -40 -72 Q0 -98 40 -72 Q46 -22 0 0 Z" fill="#f7fbfd" stroke="#c8dbe9" stroke-width="3"/>
+      <path d="M0 0 L-27 -80 M0 0 L0 -90 M0 0 L27 -80" stroke="#d2e2ee" stroke-width="2.5" fill="none"/>
+      <rect x="-6" y="-6" width="12" height="34" rx="5" fill="#8a6b46"/>
+    </g>
+
+    <!-- 蓝袍 -->
+    <path d="M52 400 Q70 298 200 290 Q330 298 348 400 Z" fill="#2f4a7a"/>
+    <!-- 青绿内衣 -->
+    <path d="M164 290 L200 360 L236 290 L250 295 L200 384 L150 295 Z" fill="#cfe0c8"/>
+    <path d="M156 294 L200 362 L244 294" fill="none" stroke="#eaf2e6" stroke-width="9" stroke-linejoin="round"/>
+
     <!-- 颈 -->
-    <rect x="184" y="248" width="32" height="58" rx="12" fill="#e3b48c"/>
+    <rect x="184" y="246" width="32" height="58" rx="12" fill="#e3b48c"/>
+
     <!-- 头 -->
-    <ellipse cx="200" cy="196" rx="74" ry="82" fill="#f1cbaa"/>
-    <ellipse cx="128" cy="205" rx="13" ry="19" fill="#e3b48c"/>
-    <ellipse cx="272" cy="205" rx="13" ry="19" fill="#e3b48c"/>
-    <!-- 纶巾（帽） -->
-    <path d="M126 176 Q124 106 200 104 Q276 106 274 176 Q200 150 126 176 Z" fill="#7e90a6"/>
-    <path d="M126 158 Q200 178 274 158 L274 176 Q200 196 126 176 Z" fill="#6b7d94"/>
-    <path d="M150 118 Q200 100 250 118" stroke="#95a6b9" stroke-width="4" fill="none"/>
+    <ellipse cx="200" cy="196" rx="72" ry="80" fill="#f0c9a6"/>
+    <ellipse cx="130" cy="204" rx="12" ry="18" fill="#e3b48c"/>
+    <ellipse cx="270" cy="204" rx="12" ry="18" fill="#e3b48c"/>
+
+    <!-- 纶巾：两侧曲角 -->
+    <path d="M128 158 Q98 146 92 120 Q90 106 102 104 Q112 104 110 112" fill="none"
+          stroke="#a4abb6" stroke-width="13" stroke-linecap="round"/>
+    <path d="M272 158 Q302 146 308 120 Q310 106 298 104 Q288 104 290 112" fill="none"
+          stroke="#a4abb6" stroke-width="13" stroke-linecap="round"/>
+    <!-- 簪 -->
+    <path d="M294 118 L342 104" stroke="#7c8592" stroke-width="5" stroke-linecap="round"/>
+
+    <!-- 纶巾：帽身 -->
+    <path d="M120 168 Q116 96 200 92 Q284 96 280 168 Z" fill="#b9c0ca"/>
+    <path d="M162 99 Q156 132 160 166 M200 95 L200 168 M238 99 Q244 132 240 166"
+          stroke="#a4abb6" stroke-width="4" fill="none"/>
+    <path d="M120 158 Q200 180 280 158 L280 176 Q200 198 120 176 Z" fill="#9aa1ac"/>
+
     <!-- 眉 -->
-    <path d="M154 182 Q172 172 190 182" stroke="#5b4636" stroke-width="5" fill="none" stroke-linecap="round"/>
-    <path d="M210 182 Q228 172 246 182" stroke="#5b4636" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M156 180 Q174 170 192 180" stroke="#2b2b2b" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M208 180 Q226 170 244 180" stroke="#2b2b2b" stroke-width="5" fill="none" stroke-linecap="round"/>
     <!-- 眼 -->
-    <ellipse cx="172" cy="200" rx="9" ry="7.5" fill="#2b3a4a"/>
-    <ellipse cx="228" cy="200" rx="9" ry="7.5" fill="#2b3a4a"/>
-    <circle cx="175" cy="198" r="2.4" fill="#fff"/><circle cx="231" cy="198" r="2.4" fill="#fff"/>
+    <ellipse cx="172" cy="198" rx="9" ry="7.5" fill="#2b3a4a"/>
+    <ellipse cx="228" cy="198" rx="9" ry="7.5" fill="#2b3a4a"/>
+    <circle cx="175" cy="196" r="2.4" fill="#fff"/><circle cx="231" cy="196" r="2.4" fill="#fff"/>
+    <!-- 腮红 -->
+    <circle cx="156" cy="220" r="15" fill="#ee9d82" opacity=".38"/>
+    <circle cx="244" cy="220" r="15" fill="#ee9d82" opacity=".38"/>
     <!-- 鼻 -->
-    <path d="M200 202 Q195 220 205 223" stroke="#d9a982" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <!-- 髭与须 -->
-    <path d="M150 232 Q143 302 200 322 Q257 302 250 232 Q241 266 200 271 Q159 266 150 232 Z" fill="#4b4b4b"/>
-    <path d="M170 228 Q200 242 230 228" stroke="#4b4b4b" stroke-width="7" fill="none" stroke-linecap="round"/>
-    <path d="M188 232 Q200 258 212 232 Z" fill="#3f3f3f"/>
+    <path d="M200 200 Q195 219 205 222" stroke="#d9a982" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+    <!-- 八字胡 -->
+    <path d="M200 228 Q178 232 167 247 Q182 240 200 238 Z" fill="#2b2b2b"/>
+    <path d="M200 228 Q222 232 233 247 Q218 240 200 238 Z" fill="#2b2b2b"/>
+    <!-- 长山羊胡 -->
+    <path d="M186 244 Q200 239 214 244 Q213 300 200 324 Q187 300 186 244 Z" fill="#2b2b2b"/>
   </g>
 </svg>
