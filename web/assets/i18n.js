@@ -225,6 +225,24 @@ const DICT = {
   " 级提示": [" 級提示", " hint(s)"],
   "指标说明与水平划分": ["指標說明與水平劃分", "What the indicators mean"],
 
+
+  // ---- 指标说明正文（来自 /api/rubric） ----
+  "你是否追问或说明一条说法的来源、作者是谁、有什么立场。": ["你是否追問或說明一條說法的來源、作者是誰、有什麼立場。", "Do you ask where a claim comes from — who said it, and what they stood to gain?"],
+  "直接接受结论，不问出处。": ["直接接受結論，不問出處。", "Takes the conclusion as given, without asking where it came from."],
+  "主动指出来源，并考虑作者的立场与时代。": ["主動指出來源，並考慮作者的立場與時代。", "Names the source, and weighs the author's position and period."],
+  "你是否把决定放回当时的时间与条件下考虑，而不是用今天的标准去衡量。": ["你是否把決定放回當時的時間與條件下考慮，而不是用今天的標準去衡量。", "Do you judge the decision inside its own time and constraints, rather than by today's standards?"],
+  "以今度古，忽略当时的处境。": ["以今度古，忽略當時的處境。", "Judges the past by present standards."],
+  "结合当时的国力、地理、制度等约束来解释选择。": ["結合當時的國力、地理、制度等約束來解釋選擇。", "Explains the choice using the constraints of the day — power, geography, institutions."],
+  "你是否用多于一份的来源互相比对，而不是只听一家之言。": ["你是否用多於一份的來源互相比對，而不是只聽一家之言。", "Do you compare more than one source, instead of trusting a single account?"],
+  "只凭单一来源或单一印象下判断。": ["只憑單一來源或單一印象下判斷。", "Relies on one source, or on an impression."],
+  "主动对照两份以上史料，并指出它们的异同。": ["主動對照兩份以上史料，並指出它們的異同。", "Sets two or more sources side by side, and notes where they agree or differ."],
+  "你的结论是否有「论点—证据—推理」的完整链条。": ["你的結論是否有「論點—證據—推理」的完整鏈條。", "Does your conclusion have a complete chain: claim — evidence — reasoning?"],
+  "只给结论，或只有一句简单理由。": ["只給結論，或只有一句簡單理由。", "States a conclusion, or gives one bare reason."],
+  "论点明确，引用具体证据，并说明证据如何支持结论。": ["論點明確，引用具體證據，並說明證據如何支持結論。", "States the claim, cites specific evidence, and explains how it supports the claim."],
+  "你是否能理解当时人为什么会那样选择（理解不等于认同）。": ["你是否能理解當時人為什麼會那樣選擇（理解不等於認同）。", "Can you explain why people then acted as they did? (Understanding is not agreement.)"],
+  "用现在的是非直接评判古人。": ["用現在的是非直接評判古人。", "Judges people of the past directly by today's right and wrong."],
+  "能说出当时人的处境与限制，并据此解释其动机。": ["能說出當時人的處境與限制，並據此解釋其動機。", "Describes the constraints people faced, and explains their motives from there."],
+
   // ---- 快捷追问 ----
   "你的依据是什么？": ["你的依據是什麼？", "What's your evidence?"],
   "还有别的说法吗？": ["還有別的說法嗎？", "Are there other accounts?"],
@@ -321,7 +339,7 @@ function walkAttrs(node) {
   if (!node.hasAttribute) return;
   let store = ATTR_ORIG.get(node);
   if (!store) { store = {}; ATTR_ORIG.set(node, store); }
-  for (const attr of ["placeholder", "title", "aria-label"]) {
+  for (const attr of ["placeholder", "title", "aria-label", "data-tip"]) {
     if (!node.hasAttribute(attr)) continue;
     if (store[attr] === undefined) store[attr] = (node.getAttribute(attr) || "").trim();
     const out = translateKey(store[attr]);

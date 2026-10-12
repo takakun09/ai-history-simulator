@@ -314,3 +314,25 @@ button{font:inherit;cursor:pointer}
   font:inherit;font-size:13px;background:#fff;color:var(--ink);cursor:pointer;
 }
 .lang-switch select:hover{border-color:#bcd3ee;background:#fafcff}
+
+/* ---------- P0-6：英文下标签与得分条不再重叠 ---------- */
+.dim-row{grid-template-columns:minmax(96px,168px) 1fr auto;font-size:13px}
+.dim-row > div:first-child{min-width:0;overflow-wrap:anywhere}
+.dim-val{font-size:12.5px;white-space:nowrap}
+
+/* 学生端侧栏更窄：标签与数值一行，进度条单独一行 */
+.prof-row{
+  display:grid;grid-template-columns:1fr auto auto;
+  grid-template-areas:"pn pv pc" "pb pb pb";
+  gap:4px 8px;align-items:center;font-size:12.5px;margin-bottom:11px
+}
+.prof-row > span:first-child{grid-area:pn;min-width:0;overflow-wrap:anywhere}
+.prof-row > .bar{grid-area:pb;width:100%}
+.prof-row > b{grid-area:pv}
+.prof-row > .lv{grid-area:pc}
+
+/* 英文界面用略小的字号，长单词不挤占得分条 */
+html[lang="en"] .dim-row{font-size:12.5px}
+html[lang="en"] .dim-val{font-size:12px}
+html[lang="en"] .prof-row{font-size:12px}
+html[lang="en"] .dim-row > div:first-child{min-width:0}
