@@ -71,8 +71,18 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/analytics":
             subs = store.list_submissions()
             checks = store.list_checks()
+            prof = profile.build_profile(subs)
+            hinted = [int(r.get("hints_used") or 0) for r in subs]
+            hint_usage = {
+                "n": len(hinted),
+                "avg": round(sum(hinted) / len(hinted), 2) if hinted else 0,
+                "used_share": round(100 * sum(1 for h in hinted if h > 0) / len(hinted))
+                if hinted else 0,
+            }
             return self._json({
-                "profile": profile.build_profile(subs),
+                "profile": prof,
+                "hint_usage": hint_usage,
+                "self_gap": prof.get("overall_gap"),
                 "counts": {"decisions": len(subs), "checks": len(checks),
                            "figures": len(store.list_figures())},
                 "recent": list(reversed(subs[-20:])),
@@ -129,6 +139,20 @@ class Handler(BaseHTTPRequestHandler):
             argument = (body.get("argument") or "").strip()
             if not argument:
                 return self._json({"error": "请先写下你的论证"}, 400)
+
+            raw_self = body.get("self_scores") or {}
+            try:
+                self_scores = {
+                    key: max(0, min(assessment.MAX_PER_ITEM, int(raw_self[key])))
+                    for key, _, _ in assessment.RUBRIC
+                }
+            except (KeyError, TypeError, ValueError):
+                return self._json({"error": "请先完成自评（5 个维度都要选）"}, 400)
+            try:
+                hints_used = max(0, int(body.get("hints_used") or 0))
+            except (TypeError, ValueError):
+                hints_used = 0
+
             try:
                 result = assessment.evaluate(
                     body.get("provider", "mock"), body.get("base_url", ""),
@@ -141,10 +165,12 @@ class Handler(BaseHTTPRequestHandler):
             import datetime
             store.save_submission({
                 "created_at": datetime.datetime.now().isoformat(timespec="seconds"),
+                "kind": "decision",
                 "student_id": body.get("student_id", ""),
                 "figure_id": fig["id"], "figure": fig.get("name", ""),
                 "dilemma_id": dilemma["id"], "dilemma": dilemma.get("title", ""),
-                "choice": (opt or {}).get("text", ""), "argument": argument, "result": result,
+                "choice": (opt or {}).get("text", ""), "argument": argument,
+                "self_scores": self_scores, "hints_used": hints_used, "result": result,
             })
             return self._json({"result": result})
 
@@ -172,6 +198,7 @@ class Handler(BaseHTTPRequestHandler):
             import datetime
             store.save_check({
                 "created_at": datetime.datetime.now().isoformat(timespec="seconds"),
+                "kind": "check",
                 "student_id": body.get("student_id", ""),
                 "figure_id": fig["id"], "figure": fig.get("name", ""),
                 "claim": claim, "verdict": verdict, "basis": basis, "result": result,

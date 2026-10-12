@@ -16,6 +16,8 @@ RUBRIC = [
     ("historical_empathy", "历史共情", "是否理解当时人的处境与限制"),
 ]
 MAX_PER_ITEM = 3
+# 史料核对只评这三个维度
+CHECK_DIMENSIONS = ("sourcing", "corroboration", "argumentation")
 
 
 def _rubric_text():
@@ -153,9 +155,19 @@ def parse_check(text):
     if not match:
         return {"error": "无法解析模型返回", "raw": (text or "")[:400]}
     try:
-        return json.loads(match.group(0))
+        data = json.loads(match.group(0))
     except json.JSONDecodeError:
         return {"error": "无法解析模型返回", "raw": (text or "")[:400]}
+    raw = data.get("scores") or {}
+    clean = {}
+    for key in CHECK_DIMENSIONS:          # 只保留这三个维度，缺失的不写入
+        if key in raw:
+            try:
+                clean[key] = max(0, min(MAX_PER_ITEM, int(raw[key])))
+            except (TypeError, ValueError):
+                continue
+    data["scores"] = clean
+    return data
 
 
 def _mock_check(verdict, basis):
@@ -165,6 +177,7 @@ def _mock_check(verdict, basis):
         "reason": "你给出了明确判断，并陈述了依据。" if ok else "你有判断，但依据还不够具体。",
         "suggestion": "" if ok else "指出具体是哪一份史料、哪一句与这段说法有关。",
         "reference": "（离线演示）请对照史料摘要，自行判断这段说法属于「相符」「有出入」还是「史料未涉及」。",
+        "scores": {k: (2 if ok else 1) for k in CHECK_DIMENSIONS},
     }
 
 
@@ -185,7 +198,11 @@ def check_source(provider_id, base_url, api_key, model, figure, claim, verdict, 
 
 请只输出 JSON：
 {{"verdict":"站得住|部分成立|站不住","reason":"为什么（中文，2-3 句）",
-"suggestion":"如何改进核查（中文，1-2 句）","reference":"关于这段说法与史料关系的参照判断（中文，1-2 句）"}}"""
+"suggestion":"如何改进核查（中文，1-2 句）","reference":"关于这段说法与史料关系的参照判断（中文，1-2 句）",
+"scores":{{"sourcing":0,"corroboration":0,"argumentation":0}}}}
+其中 scores 是学生在这次核对中表现出的三种能力，各 0-{MAX_PER_ITEM} 分：
+sourcing=是否追到具体史料与出处；corroboration=是否做了来源之间的比对；
+argumentation=依据与判断之间是否有推理。"""
     reply = providers.chat(
         provider_id, base_url, api_key, model, system,
         [{"role": "user", "content": user}], figure_name=figure.get("name", ""),

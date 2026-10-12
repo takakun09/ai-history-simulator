@@ -254,8 +254,8 @@ function renderDilemmas() {
       </div>
       <span class="mini">情境</span>
       <textarea data-k="scenario" rows="3" placeholder="给学生描述这个历史抉择场景">${esc(d.scenario || "")}</textarea>
-      <span class="mini">提示（可选）</span>
-      <input data-k="hint" value="${esc(d.hint || "")}" placeholder="给学生一点思考方向">
+      <span class="mini">提示（分级支架，最多 3 级，每行一级；越往下越具体，但始终不给答案）</span>
+      <textarea data-k="hints" rows="3" placeholder="第 1 级：给一个方向&#10;第 2 级：给一个比较&#10;第 3 级：点出关键约束">${esc((d.hints || (d.hint ? [d.hint] : [])).join("\n"))}</textarea>
       <span class="mini">选项（可拖拽排序）</span>
       <div data-opts>
         ${(d.options || []).map((o, j) => `
@@ -271,7 +271,15 @@ function renderDilemmas() {
   $("dilemmasList").querySelectorAll(".dilemma-card").forEach((card) => {
     const i = +card.dataset.i;
     card.querySelectorAll("[data-k]").forEach((el) => {
-      el.addEventListener("input", () => { draft.dilemmas[i][el.dataset.k] = el.value; refreshDirty(); });
+      el.addEventListener("input", () => {
+        if (el.dataset.k === "hints") {
+          draft.dilemmas[i].hints = el.value.split("\n")
+            .map((x) => x.trim()).filter(Boolean).slice(0, 3);
+        } else {
+          draft.dilemmas[i][el.dataset.k] = el.value;
+        }
+        refreshDirty();
+      });
     });
     card.querySelector('[data-act="del-dilemma"]').onclick = () => {
       draft.dilemmas.splice(i, 1); renderDilemmas(); updateCounts(); refreshDirty();
@@ -322,7 +330,7 @@ function collect() {
       id: d.id || "d" + (i + 1),
       title: (d.title || "").trim(),
       scenario: (d.scenario || "").trim(),
-      hint: (d.hint || "").trim(),
+      hints: (d.hints || []).map((x) => (x || "").trim()).filter(Boolean).slice(0, 3),
       rubric_focus: d.rubric_focus || [],
       options: (d.options || [])
         .map((o, j) => ({ id: o.id || "opt" + (j + 1), text: (o.text || "").trim() }))

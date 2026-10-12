@@ -13,7 +13,9 @@ async function load() {
     <div class="stat"><b>${d.counts.decisions}</b><span>抉择提交</span></div>
     <div class="stat"><b>${d.counts.checks}</b><span>史料核对</span></div>
     <div class="stat"><b>${d.counts.figures}</b><span>历史人物</span></div>
-    <div class="stat"><b>${p.count ? esc(p.per_dimension[p.weakest]?.name || "—") : "—"}</b><span>最弱维度</span></div>`;
+    <div class="stat"><b>${p.count ? esc(p.per_dimension[p.weakest]?.name || "—") : "—"}</b><span>最弱维度</span></div>
+    <div class="stat"><b>${(d.hint_usage && d.hint_usage.n) ? d.hint_usage.avg : "—"}</b><span>平均提示级数（${(d.hint_usage && d.hint_usage.n) ? d.hint_usage.used_share + "% 用过提示" : "无数据"}）</span></div>
+    <div class="stat"><b>${typeof d.self_gap === "number" ? (d.self_gap > 0 ? "+" : "") + d.self_gap.toFixed(1) : "—"}</b><span>自评偏差（正=高估）</span></div>`;
 
   const dims = document.getElementById("dims");
   if (!p.count) {

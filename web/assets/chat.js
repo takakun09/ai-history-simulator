@@ -13,6 +13,8 @@ function studentId() {
 }
 const STUDENT = studentId();
 
+const QUICK_ASKS = ["你的依据是什么？", "还有别的说法吗？", "当时的人会怎么看？", "你确定吗？"];
+
 async function boot() {
   if (!figId) { location.href = "/"; return; }
   try { figure = await api(`/api/figures/${encodeURIComponent(figId)}`); }
@@ -25,7 +27,7 @@ async function boot() {
   $("avatar").src = "/" + (figure.avatar || "");
   $("name").textContent = figure.name;
   $("era").textContent = figure.era || "";
-  renderSources(); renderQuestions(); renderDilemmas(); resetChat(); await setupProviders(); loadProfile();
+  renderSources(); renderQuestions(); renderDilemmas(); renderQuickAsk(); resetChat(); await setupProviders(); loadProfile();
 }
 
 function renderSources() {
@@ -128,6 +130,8 @@ const RUBRIC = [
   ["argumentation", "论证"], ["historical_empathy", "历史共情"],
 ];
 let activeDilemma = null;
+let selfScores = {};
+let hintLevel = 0;
 
 function renderDilemmas() {
   const ds = figure.dilemmas || [];
@@ -143,12 +147,25 @@ function renderDilemmas() {
 
 function openDilemma(d) {
   activeDilemma = d;
+  const hints = d.hints || (d.hint ? [d.hint] : []);
+  selfScores = {};
+  hintLevel = 0;
   $("mTitle").textContent = "抉择：" + d.title;
   $("mBody").innerHTML = `
     <div class="scenario">${esc(d.scenario || "")}</div>
     <div id="opts">${(d.options || []).map(o =>
       `<label class="opt"><input type="radio" name="choice" value="${esc(o.id)}"><span>${esc(o.text)}</span></label>`).join("")}</div>
-    ${d.hint ? `<div class="hintline">💡 ${esc(d.hint)}</div>` : ""}
+    <div id="hintBox"></div>
+    ${hints.length ? '<button type="button" class="btn ghost small" id="hintBtn">💡 需要一点提示？</button>' : ""}
+    <div class="selfassess">
+      <div class="mini">先自评：你觉得你的论证在这五方面各能得几分？（0–3，必填）</div>
+      <div id="selfRows">${RUBRIC.map(([k, name]) => `
+        <div class="self-row" data-k="${k}">
+          <span class="self-name">${name}</span>
+          <span class="chips">${[0, 1, 2, 3].map((v) =>
+            `<button type="button" class="chip" data-v="${v}">${v}</button>`).join("")}</span>
+        </div>`).join("")}</div>
+    </div>
     <div style="font-size:13px;color:var(--muted)">你的论证——为什么这样选？最好引用史料作为依据。</div>
     <textarea id="argInput" placeholder="例如：我选择……，因为……（依据：《……》）"></textarea>
     <label class="toggle" style="margin-top:12px"><input type="checkbox" id="dbl">
@@ -157,6 +174,8 @@ function openDilemma(d) {
       <span id="mStatus" style="align-self:center;color:var(--muted);font-size:13px"></span></div>
     <div id="mResult"></div>`;
   bindOpts();
+  bindSelfAssess();
+  bindHints(hints);
   $("mSubmit").onclick = submitDecision;
   $("modal").hidden = false;
 }
@@ -166,6 +185,9 @@ async function submitDecision() {
   const argument = $("argInput").value.trim();
   if (!chosen) { $("mStatus").textContent = "请先选择一个选项"; return; }
   if (!argument) { $("mStatus").textContent = "请写下你的论证"; return; }
+  const missing = RUBRIC.filter(([k]) => typeof selfScores[k] !== "number").length;
+  if (missing) { $("mStatus").textContent = `请先完成自评（还差 ${missing} 项）`; return; }
+  const usedHints = hintLevel;
   $("mStatus").textContent = "评估中…";
   try {
     const { result } = await api("/api/decide", {
@@ -173,11 +195,12 @@ async function submitDecision() {
       body: JSON.stringify({
         figure_id: figure.id, dilemma_id: activeDilemma.id, choice_id: chosen.value, argument,
         student_id: STUDENT, double_score: !!($("dbl") && $("dbl").checked),
+        self_scores: selfScores, hints_used: usedHints,
         provider: cfg.provider, model: cfg.model, base_url: cfg.base_url, api_key: cfg.api_key,
       }),
     });
     $("mStatus").textContent = "";
-    renderResult(result);
+    renderResult(result, selfScores, usedHints);
     loadProfile();
     const label = chosen.parentElement.querySelector("span").textContent;
     addMsg("sys", `【抉择 · ${activeDilemma.title}】你选择了「${label}」，论证已提交。`, false);
@@ -186,7 +209,7 @@ async function submitDecision() {
   }
 }
 
-function renderResult(r) {
+function renderResult(r, selfScores, usedHints) {
   if (r.error) {
     $("mResult").innerHTML = `<div class="fb warn"><b>评估失败</b><br>${esc(r.error)}<br>${esc(r.raw || "")}</div>`;
     return;
@@ -199,6 +222,34 @@ function renderResult(r) {
       <div><span class="bar"><i style="width:${(r.scores[k] / 3) * 100}%"></i></span>
       <b style="margin-left:8px">${r.scores[k]}/3</b>${ag}</div>`;
   }).join("");
+
+  let cmp = "";
+  if (selfScores && RUBRIC.some(([k]) => typeof selfScores[k] === "number")) {
+    const gaps = [];
+    const cmpRows = RUBRIC.map(([k, name]) => {
+      const self = typeof selfScores[k] === "number" ? selfScores[k] : "—";
+      const ai = typeof r.scores[k] === "number" ? r.scores[k] : "—";
+      let gapTxt = "—", gapCls = "even";
+      if (typeof self === "number" && typeof ai === "number") {
+        const g = self - ai;
+        gaps.push(g);
+        gapTxt = g > 0 ? `+${g}` : `${g}`;
+        gapCls = g > 0 ? "over" : (g < 0 ? "under" : "even");
+      }
+      return `<div>${name}</div><div>自评 <b>${self}</b> · AI <b>${ai}</b>
+        <span class="gap ${gapCls}">${gapTxt}</span></div>`;
+    }).join("");
+    const avg = gaps.length ? gaps.reduce((a, b) => a + b, 0) / gaps.length : 0;
+    const verdict = Math.abs(avg) < 0.34 ? "自评与 AI 评分基本一致。"
+      : (avg > 0 ? `你整体高估了约 ${avg.toFixed(1)} 分。` : `你整体低估了约 ${Math.abs(avg).toFixed(1)} 分。`);
+    cmp = `<div class="total" style="margin-top:18px">自评 vs AI</div>
+      <div class="score-grid">${cmpRows}</div>
+      <div class="fb">元认知提示：${verdict}</div>`;
+  }
+
+  const hintLine = usedHints
+    ? `<div class="fb">本次使用了 <b>${usedHints}</b> 级提示（不扣分，仅供教师参考）。</div>` : "";
+
   $("mResult").innerHTML = `
     <hr style="border:none;border-top:1px solid var(--line);margin:22px 0 4px">
     <div class="total">总分 ${r.total} / ${r.max_total}</div>
@@ -206,6 +257,8 @@ function renderResult(r) {
     <div class="fb good"><b>👍 做得好</b><br>${(r.strengths || []).map(esc).join("<br>") || "—"}</div>
     <div class="fb warn"><b>🔧 可以改进</b><br>${(r.improvements || []).map(esc).join("<br>") || "—"}</div>
     <div class="fb"><b>点评</b><br>${esc(r.feedback || "")}</div>
+    ${hintLine}
+    ${cmp}
     ${r.needs_review ? '<div class="fb warn"><b>⚠️ 评分一致性偏低</b><br>该次评分的部分维度两次结果差异较大，建议教师复核或让学生补充论证后再评。</div>' : ""}`;
 }
 
@@ -312,13 +365,60 @@ function renderProfile(p) {
     box.innerHTML = '<div class="empty">完成一次「抉择任务」后，这里会出现你的能力画像。</div>';
     return;
   }
+  const bk = p.by_kind || {};
   const rows = RUBRIC.map(([k, name]) => {
     const d = p.per_dimension[k];
     return `<div class="prof-row"><span>${name}</span>
       <span class="bar"><i style="width:${d.pct || 0}%"></i></span>
       <b>${d.avg == null ? "—" : d.avg}</b></div>`;
   }).join("");
-  box.innerHTML = `<div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">已完成 ${p.count} 次抉择论证</div>
+  const gapNote = (typeof p.overall_gap === "number" && Math.abs(p.overall_gap) >= 0.34)
+    ? `<div class="fb warn" style="margin-top:10px">自评偏差：整体${p.overall_gap > 0 ? "高估" : "低估"}约 ${Math.abs(p.overall_gap).toFixed(1)} 分</div>` : "";
+  box.innerHTML = `<div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">
+      抉择 ${bk.decision || 0} 次 · 核对 ${bk.check || 0} 次</div>
     ${rows}
-    ${p.weakest ? `<div class="fb warn" style="margin-top:10px">最需要加强：<b>${esc(p.per_dimension[p.weakest].name)}</b></div>` : ""}`;
+    ${p.weakest ? `<div class="fb warn" style="margin-top:10px">最需要加强：<b>${esc(p.per_dimension[p.weakest].name)}</b></div>` : ""}
+    ${gapNote}`;
+}
+
+/* ---------- 快捷追问（P0-4） ---------- */
+function renderQuickAsk() {
+  $("quickask").innerHTML = QUICK_ASKS.map((q) =>
+    `<button type="button" class="qask">${esc(q)}</button>`).join("");
+  $("quickask").querySelectorAll(".qask").forEach((b) => {
+    b.onclick = () => { $("input").value = b.textContent; $("input").focus(); };
+  });
+}
+
+/* ---------- 自评与分级支架（P0-4） ---------- */
+function bindSelfAssess() {
+  $("selfRows").querySelectorAll(".self-row").forEach((row) => {
+    const k = row.dataset.k;
+    row.querySelectorAll(".chip").forEach((chip) => {
+      chip.onclick = () => {
+        row.querySelectorAll(".chip").forEach((c) => c.classList.remove("on"));
+        chip.classList.add("on");
+        selfScores[k] = +chip.dataset.v;
+      };
+    });
+  });
+}
+
+function bindHints(hints) {
+  const btn = $("hintBtn");
+  if (!btn) return;
+  btn.onclick = () => {
+    if (hintLevel >= hints.length) return;
+    const div = document.createElement("div");
+    div.className = "hintline";
+    div.textContent = `💡 提示 ${hintLevel + 1}：${hints[hintLevel]}`;
+    $("hintBox").appendChild(div);
+    hintLevel += 1;
+    if (hintLevel >= hints.length) {
+      btn.textContent = "已给出全部提示";
+      btn.disabled = true;
+    } else {
+      btn.textContent = `💡 再给一点提示？（已用 ${hintLevel}/${hints.length}）`;
+    }
+  };
 }
