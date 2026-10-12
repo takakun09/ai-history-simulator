@@ -29,6 +29,7 @@ function fill(f) {
   $("f_prompt").value = f.system_prompt || "";
   $("f_sources").value = (f.sources || []).map(s => [s.title || "", s.kind || "", s.note || ""].join(" | ")).join("\n");
   $("f_questions").value = (f.suggested_questions || []).join("\n");
+  $("f_dilemmas").value = dilemmasToText(f.dilemmas);
   $("f_published").checked = !!f.published;
   $("title").textContent = f.name ? `编辑：${f.name}` : "新建历史人物";
   $("test").href = f.id ? `/chat?figure=${encodeURIComponent(f.id)}` : "#";
@@ -60,6 +61,7 @@ function collect() {
       return { title, kind, note };
     }),
     suggested_questions: $("f_questions").value.split("\n").map(l => l.trim()).filter(Boolean),
+    dilemmas: parseDilemmas($("f_dilemmas").value),
     published: $("f_published").checked,
   };
 }
@@ -89,3 +91,32 @@ $("save").onclick = save;
 $("del").onclick = del;
 $("new").onclick = blank;
 load();
+
+
+/* ---------- 抉择节点：文本 ⇄ 数据（P0-1） ---------- */
+function dilemmasToText(ds) {
+  return (ds || []).map(d => [
+    "# " + (d.title || ""),
+    "情境：" + (d.scenario || ""),
+    "选项：" + (d.options || []).map(o => o.text || "").join(" | "),
+    "提示：" + (d.hint || ""),
+  ].join("\n")).join("\n---\n");
+}
+
+function parseDilemmas(text) {
+  return text.split(/\n\s*---\s*\n/)
+    .map((block, bi) => {
+      const d = { id: "d" + (bi + 1), title: "", scenario: "", options: [], hint: "", rubric_focus: [] };
+      block.split("\n").forEach(line => {
+        const t = line.trim();
+        if (t.startsWith("#")) d.title = t.replace(/^#+\s*/, "");
+        else if (/^情境/.test(t)) d.scenario = t.replace(/^情境[：:]\s*/, "");
+        else if (/^选项/.test(t)) {
+          d.options = t.replace(/^选项[：:]\s*/, "").split("|").map(x => x.trim()).filter(Boolean)
+            .map((txt, i) => ({ id: "opt" + (i + 1), text: txt }));
+        } else if (/^提示/.test(t)) d.hint = t.replace(/^提示[：:]\s*/, "");
+      });
+      return d;
+    })
+    .filter(d => d.title && d.options.length);
+}

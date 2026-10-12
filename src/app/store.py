@@ -61,3 +61,35 @@ def delete_figure(fid):
         kept = [f for f in figs if f.get("id") != fid]
         _write(kept)
     return len(kept) != len(figs)
+
+
+# ---------- 抉择提交记录（P0-1） ----------
+SUBMISSIONS_FILE = DATA_DIR / "submissions.json"
+
+
+def _read_submissions():
+    if not SUBMISSIONS_FILE.exists():
+        return []
+    with open(SUBMISSIONS_FILE, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _write_submissions(rows):
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    tmp = SUBMISSIONS_FILE.with_suffix(".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(rows, f, ensure_ascii=False, indent=2)
+    tmp.replace(SUBMISSIONS_FILE)
+
+
+def save_submission(rec):
+    with _lock:
+        rows = _read_submissions()
+        rows.append(rec)
+        _write_submissions(rows)
+    return rec
+
+
+def list_submissions():
+    with _lock:
+        return _read_submissions()

@@ -7,3 +7,4 @@ work/
 *.log
 .DS_Store
 data/figures.local.json
+data/*.json

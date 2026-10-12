@@ -38,12 +38,19 @@
     </div>
   </section>
   <aside class="side">
+    <div class="panel"><h4>抉择任务</h4><div id="dilemmas"></div></div>
     <div class="panel"><h4>可查证的史料</h4><div class="src" id="sources"></div></div>
     <div class="panel"><h4>可以这样问</h4><div id="questions"></div></div>
     <div class="panel"><h4>提示</h4>
       <div class="notice">这位人物<b>有立场、可能带偏见</b>。别急着相信——先追问他「你怎么知道的」，再对照史料。</div>
     </div>
   </aside>
+</div>
+<div class="modal-mask" id="modal" hidden>
+  <div class="modal">
+    <div class="modal-head"><h3 id="mTitle">抉择</h3><button class="btn ghost" id="mClose">关闭</button></div>
+    <div class="modal-body" id="mBody"></div>
+  </div>
 </div>
 <script type="module" src="/assets/chat.js"></script>
 </body>

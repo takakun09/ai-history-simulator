@@ -116,3 +116,92 @@ DEFAULT_FIGURES = [
         ),
     },
 ]
+
+
+# ---------------------------------------------------------------------------
+# 抉择节点（P0-1）：每个历史人物给出若干"历史抉择"，学生须选择并提交论证。
+# ---------------------------------------------------------------------------
+DILEMMAS = {
+    "zhuge-liang": [
+        {
+            "id": "jieting",
+            "title": "街亭用人",
+            "scenario": "公元 228 年，第一次北伐。街亭是通往长安的咽喉，必须派一员将领据守。"
+                        "军议上众人各执一词，身为统帅，你派谁去？",
+            "options": [
+                {"id": "ma-su", "text": "马谡——善谋略，但从未独当一面"},
+                {"id": "wei-yan", "text": "魏延——久经战阵，主张出奇兵"},
+                {"id": "wang-ping", "text": "王平——谨慎持重，但识字不多"},
+            ],
+            "hint": "想想：街亭没有坚城可守、必须当道扎营；三人的实战经验；以及你北伐的整体盘算。",
+            "rubric_focus": ["contextualization", "argumentation"],
+        },
+        {
+            "id": "north-expedition",
+            "title": "北伐进退",
+            "scenario": "街亭失守后，有人劝你：蜀汉国力远逊于魏，与其连年用兵，不如闭关休养。你如何抉择？",
+            "options": [
+                {"id": "keep", "text": "继续北伐，以攻为守"},
+                {"id": "rest", "text": "撤军固守，休养生息"},
+                {"id": "wu", "text": "联合东吴，再图后举"},
+            ],
+            "hint": "想想：《出师表》里的承诺、蜀汉与魏的国力对比，以及「以攻为守」的代价。",
+            "rubric_focus": ["sourcing", "argumentation"],
+        },
+    ],
+    "socrates": [
+        {
+            "id": "prison",
+            "title": "越狱之辩",
+            "scenario": "你被判死刑，好友克力同已安排好越狱，劝你「逃走才能继续教导世人」。你如何抉择？",
+            "options": [
+                {"id": "escape", "text": "越狱逃亡，继续讲学"},
+                {"id": "obey", "text": "服从判决，饮下毒酒"},
+                {"id": "exile", "text": "请求流放，换一命"},
+            ],
+            "hint": "想想：你一生所讲的「守法」与「正义」；若你自己违法，还如何教导他人？",
+            "rubric_focus": ["argumentation", "historical_empathy"],
+        },
+        {
+            "id": "trial",
+            "title": "受审的态度",
+            "scenario": "在五百人陪审团前受审。你可以低声求情、争取轻判；也可以坚持立场、毫不退让。你选哪种？",
+            "options": [
+                {"id": "plead", "text": "低声求情，保住性命"},
+                {"id": "stand", "text": "坚持立场，绝不妥协"},
+                {"id": "irony", "text": "提议「终身公费供养」，以示讽刺"},
+            ],
+            "hint": "想想：你说过「未经省察的人生不值得过」。",
+            "rubric_focus": ["argumentation", "sourcing"],
+        },
+    ],
+    "lincoln": [
+        {
+            "id": "emancipation",
+            "title": "废奴的时机",
+            "scenario": "1862 年，战争陷入僵局。若此刻宣布解放奴隶，可能激怒边疆蓄奴州、使其倒向南方。你如何决断？",
+            "options": [
+                {"id": "now", "text": "立即宣布解放奴隶"},
+                {"id": "later", "text": "暂缓，先保联邦统一"},
+                {"id": "rebels", "text": "只在叛乱州宣布，稳住边疆州"},
+            ],
+            "hint": "想想：你的首要目标是维护联邦，还是废奴？两者冲突时如何取舍？",
+            "rubric_focus": ["contextualization", "argumentation"],
+        },
+        {
+            "id": "peace",
+            "title": "和谈与否",
+            "scenario": "战事久拖，北方厌战。有人主张与南方和谈、承认其独立以止战。你如何抉择？",
+            "options": [
+                {"id": "peace", "text": "和谈，承认南方独立"},
+                {"id": "fight", "text": "坚持战争，维护联邦"},
+                {"id": "mixed", "text": "边打边谈，以战场优势争取条件"},
+            ],
+            "hint": "想想：「一个分裂的家无法站立」——分裂的代价与统一的意义。",
+            "rubric_focus": ["argumentation", "historical_empathy"],
+        },
+    ],
+}
+
+for _fig in DEFAULT_FIGURES:
+    _fig.setdefault("dilemmas", DILEMMAS.get(_fig["id"], []))

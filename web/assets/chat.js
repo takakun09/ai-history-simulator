@@ -18,7 +18,7 @@ async function boot() {
   $("avatar").src = "/" + (figure.avatar || "");
   $("name").textContent = figure.name;
   $("era").textContent = figure.era || "";
-  renderSources(); renderQuestions(); resetChat(); await setupProviders();
+  renderSources(); renderQuestions(); renderDilemmas(); resetChat(); await setupProviders();
 }
 
 function renderSources() {
@@ -112,3 +112,90 @@ $("newchat").onclick = resetChat;
 $("input").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
 
 boot();
+
+
+/* ---------- 抉择任务（P0-1） ---------- */
+const RUBRIC = [
+  ["sourcing", "史料溯源"], ["contextualization", "语境化"], ["corroboration", "交叉验证"],
+  ["argumentation", "论证"], ["historical_empathy", "历史共情"],
+];
+let activeDilemma = null;
+
+function renderDilemmas() {
+  const ds = figure.dilemmas || [];
+  $("dilemmas").innerHTML = ds.length
+    ? ds.map((d, i) => `<div class="dilemma-item">
+        <div class="t"><b>${esc(d.title)}</b><small>${(d.options || []).length} 个选项</small></div>
+        <button class="btn ghost" data-i="${i}">开始</button></div>`).join("")
+    : '<div class="empty">该人物暂无抉择任务。</div>';
+  $("dilemmas").querySelectorAll("button[data-i]").forEach(b => {
+    b.onclick = () => openDilemma((figure.dilemmas || [])[+b.dataset.i]);
+  });
+}
+
+function openDilemma(d) {
+  activeDilemma = d;
+  $("mTitle").textContent = "抉择：" + d.title;
+  $("mBody").innerHTML = `
+    <div class="scenario">${esc(d.scenario || "")}</div>
+    <div id="opts">${(d.options || []).map(o =>
+      `<label class="opt"><input type="radio" name="choice" value="${esc(o.id)}"><span>${esc(o.text)}</span></label>`).join("")}</div>
+    ${d.hint ? `<div class="hintline">💡 ${esc(d.hint)}</div>` : ""}
+    <div style="font-size:13px;color:var(--muted)">你的论证——为什么这样选？最好引用史料作为依据。</div>
+    <textarea id="argInput" placeholder="例如：我选择……，因为……（依据：《……》）"></textarea>
+    <div class="row-actions"><button class="btn" id="mSubmit">提交论证</button>
+      <span id="mStatus" style="align-self:center;color:var(--muted);font-size:13px"></span></div>
+    <div id="mResult"></div>`;
+  $("mBody").querySelectorAll(".opt").forEach(lab => {
+    lab.querySelector("input").addEventListener("change", () => {
+      $("mBody").querySelectorAll(".opt").forEach(x => x.classList.remove("sel"));
+      lab.classList.add("sel");
+    });
+  });
+  $("mSubmit").onclick = submitDecision;
+  $("modal").hidden = false;
+}
+
+async function submitDecision() {
+  const chosen = $("mBody").querySelector('input[name="choice"]:checked');
+  const argument = $("argInput").value.trim();
+  if (!chosen) { $("mStatus").textContent = "请先选择一个选项"; return; }
+  if (!argument) { $("mStatus").textContent = "请写下你的论证"; return; }
+  $("mStatus").textContent = "评估中…";
+  try {
+    const { result } = await api("/api/decide", {
+      method: "POST",
+      body: JSON.stringify({
+        figure_id: figure.id, dilemma_id: activeDilemma.id, choice_id: chosen.value, argument,
+        provider: cfg.provider, model: cfg.model, base_url: cfg.base_url, api_key: cfg.api_key,
+      }),
+    });
+    $("mStatus").textContent = "";
+    renderResult(result);
+    const label = chosen.parentElement.querySelector("span").textContent;
+    addMsg("sys", `【抉择 · ${activeDilemma.title}】你选择了「${label}」，论证已提交。`, false);
+  } catch (e) {
+    $("mStatus").textContent = "提交失败：" + e.message;
+  }
+}
+
+function renderResult(r) {
+  if (r.error) {
+    $("mResult").innerHTML = `<div class="fb warn"><b>评估失败</b><br>${esc(r.error)}<br>${esc(r.raw || "")}</div>`;
+    return;
+  }
+  const rows = RUBRIC.map(([k, name]) => `
+    <div>${name}</div>
+    <div><span class="bar"><i style="width:${(r.scores[k] / 3) * 100}%"></i></span>
+      <b style="margin-left:8px">${r.scores[k]}/3</b></div>`).join("");
+  $("mResult").innerHTML = `
+    <hr style="border:none;border-top:1px solid var(--line);margin:22px 0 4px">
+    <div class="total">总分 ${r.total} / ${r.max_total}</div>
+    <div class="score-grid">${rows}</div>
+    <div class="fb good"><b>👍 做得好</b><br>${(r.strengths || []).map(esc).join("<br>") || "—"}</div>
+    <div class="fb warn"><b>🔧 可以改进</b><br>${(r.improvements || []).map(esc).join("<br>") || "—"}</div>
+    <div class="fb"><b>点评</b><br>${esc(r.feedback || "")}</div>`;
+}
+
+$("mClose").onclick = () => { $("modal").hidden = true; };
+$("modal").addEventListener("click", (e) => { if (e.target.id === "modal") $("modal").hidden = true; });

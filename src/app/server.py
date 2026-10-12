@@ -9,7 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from . import providers, store
+from . import assessment, providers, store
 
 ROOT = Path(__file__).resolve().parents[2]
 WEB = ROOT / "web"
@@ -100,6 +100,36 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as exc:  # 把上游错误回给前端，便于演示排错
                 return self._json({"error": f"{type(exc).__name__}: {exc}"}, 502)
             return self._json({"reply": reply})
+
+        if path == "/api/decide":
+            fig = store.get_figure(body.get("figure_id", ""))
+            if not fig:
+                return self._json({"error": "人物不存在"}, 404)
+            dilemma = next((d for d in fig.get("dilemmas", [])
+                            if d.get("id") == body.get("dilemma_id")), None)
+            if not dilemma:
+                return self._json({"error": "抉择不存在"}, 404)
+            opt = next((o for o in dilemma.get("options", [])
+                        if o.get("id") == body.get("choice_id")), None)
+            argument = (body.get("argument") or "").strip()
+            if not argument:
+                return self._json({"error": "请先写下你的论证"}, 400)
+            try:
+                result = assessment.evaluate(
+                    body.get("provider", "mock"), body.get("base_url", ""),
+                    body.get("api_key", ""), body.get("model", ""),
+                    fig, dilemma, (opt or {}).get("text", ""), argument,
+                )
+            except Exception as exc:
+                return self._json({"error": f"{type(exc).__name__}: {exc}"}, 502)
+            import datetime
+            store.save_submission({
+                "created_at": datetime.datetime.now().isoformat(timespec="seconds"),
+                "figure_id": fig["id"], "figure": fig.get("name", ""),
+                "dilemma_id": dilemma["id"], "dilemma": dilemma.get("title", ""),
+                "choice": (opt or {}).get("text", ""), "argument": argument, "result": result,
+            })
+            return self._json({"result": result})
 
         return self._json({"error": "not found"}, 404)
 
