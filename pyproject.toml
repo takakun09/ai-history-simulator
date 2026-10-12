@@ -1,0 +1,10 @@
+[project]
+name = "history-sim"
+version = "0.1.0"
+description = "AI 历史人物模拟器 — 课程项目 Demo（学生端 + 教师端）"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
