@@ -19,15 +19,22 @@ MAX_PER_ITEM = 3
 # 史料核对只评这三个维度
 CHECK_DIMENSIONS = ("sourcing", "corroboration", "argumentation")
 
+# 界面切到英文 / 繁体时，让模型用对应语言写评语
+LANG_NOTE = {
+    "en": "\nPlease write all of your feedback (reason/comment) in English.",
+    "tw": "\n請使用繁體中文撰寫所有評語。",
+}
+
 
 def _rubric_text():
     return "\n".join(f"- {k}（{name}）：{desc}" for k, name, desc in RUBRIC)
 
 
-def build_messages(figure, dilemma, choice_text, argument):
+def build_messages(figure, dilemma, choice_text, argument, lang="zh"):
     system = (
         "你是一位严格但友善的历史教学评估助手。依据给定量表评价学生对历史抉择的论证，"
         "并给出可操作的改进建议。只输出 JSON，不要输出任何其它文字。"
+        + LANG_NOTE.get(lang or "zh", "")
     )
     options = " / ".join(o.get("text", "") for o in dilemma.get("options", []))
     user = f"""【评分量表】每个维度 0–{MAX_PER_ITEM} 分：
@@ -82,8 +89,8 @@ def _mock(argument):
 
 
 def _score_once(provider_id, base_url, api_key, model, figure, dilemma, choice_text, argument,
-                temperature):
-    system, user = build_messages(figure, dilemma, choice_text, argument)
+                temperature, lang="zh"):
+    system, user = build_messages(figure, dilemma, choice_text, argument, lang)
     reply = providers.chat(
         provider_id, base_url, api_key, model, system,
         [{"role": "user", "content": user}], figure_name=figure.get("name", ""),
@@ -113,7 +120,7 @@ def _merge(first, second):
 
 
 def evaluate(provider_id, base_url, api_key, model, figure, dilemma, choice_text, argument,
-             double_score=False):
+             double_score=False, lang="zh"):
     """评估学生论证。double_score=True 时做两次独立评分并给出一致性。"""
     if provider_id == "mock":
         result = _mock(argument)
@@ -122,14 +129,14 @@ def evaluate(provider_id, base_url, api_key, model, figure, dilemma, choice_text
         return result
 
     first = _score_once(provider_id, base_url, api_key, model, figure, dilemma,
-                        choice_text, argument, temperature=0.0)
+                        choice_text, argument, temperature=0.0, lang=lang)
     if first.get("error") or not double_score:
         first["agreement"] = None
         first["needs_review"] = False
         return first
 
     second = _score_once(provider_id, base_url, api_key, model, figure, dilemma,
-                         choice_text, argument, temperature=0.5)
+                         choice_text, argument, temperature=0.5, lang=lang)
     if second.get("error"):
         first["agreement"] = None
         first["needs_review"] = False
@@ -181,12 +188,14 @@ def _mock_check(verdict, basis):
     }
 
 
-def check_source(provider_id, base_url, api_key, model, figure, claim, verdict, basis):
+def check_source(provider_id, base_url, api_key, model, figure, claim, verdict, basis,
+                 lang="zh"):
     if provider_id == "mock":
         return _mock_check(verdict, basis)
     system = (
         "你是历史教学中的「史料裁判」。学生正在核对一段 AI 历史人物的说法是否与史料相符。"
         "请判断学生的判断是否站得住，并给出改进建议。只输出 JSON，不要输出其它文字。"
+        + LANG_NOTE.get(lang or "zh", "")
     )
     user = f"""【AI 的历史人物说法】{claim}
 

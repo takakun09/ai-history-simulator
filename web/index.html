@@ -18,8 +18,7 @@
 <main class="container">
   <div class="hero">
     <h1>选择一位历史人物，开始一场对话</h1>
-    <p>这里的 AI 扮演的不是「全知百科」，而是<b>有立场、可能带偏见的历史当事人</b>。
-       向他提问、追问、质疑——再想一想：你凭什么相信他说的？</p>
+    <p>这里的 AI 扮演的不是「全知百科」，而是<b>有立场、可能带偏见的历史当事人</b>。向他提问、追问、质疑——再想一想：你凭什么相信他说的？</p>
   </div>
   <div class="figure-grid" id="grid"><div class="empty">加载中…</div></div>
 </main>
@@ -49,5 +48,6 @@ async function load(){
 }
 load().catch(e => { document.getElementById("grid").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`; });
 </script>
+<script type="module" src="/assets/i18n.js"></script>
 </body>
 </html>

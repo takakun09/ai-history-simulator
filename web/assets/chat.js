@@ -1,4 +1,5 @@
 import { api, qs, esc, store } from "/assets/app.js";
+import { currentLang } from "/assets/i18n.js";
 
 const $ = (id) => document.getElementById(id);
 const figId = qs("figure");
@@ -77,7 +78,7 @@ async function send() {
     const { reply } = await api("/api/chat", {
       method: "POST",
       body: JSON.stringify({
-        figure_id: figure.id, messages, provider: cfg.provider,
+        figure_id: figure.id, messages, lang: currentLang(), provider: cfg.provider,
         model: cfg.model, base_url: cfg.base_url, api_key: cfg.api_key,
       }),
     });
@@ -152,7 +153,7 @@ function openDilemma(d) {
   hintLevel = 0;
   $("mTitle").textContent = "抉择：" + d.title;
   $("mBody").innerHTML = `
-    <div class="scenario">${esc(d.scenario || "")}</div>
+    <div class="scenario" data-no-i18n>${esc(d.scenario || "")}</div>
     <div id="opts">${(d.options || []).map(o =>
       `<label class="opt"><input type="radio" name="choice" value="${esc(o.id)}"><span>${esc(o.text)}</span></label>`).join("")}</div>
     <div id="hintBox"></div>
@@ -194,7 +195,7 @@ async function submitDecision() {
       method: "POST",
       body: JSON.stringify({
         figure_id: figure.id, dilemma_id: activeDilemma.id, choice_id: chosen.value, argument,
-        student_id: STUDENT, double_score: !!($("dbl") && $("dbl").checked),
+        student_id: STUDENT, lang: currentLang(), double_score: !!($("dbl") && $("dbl").checked),
         self_scores: selfScores, hints_used: usedHints,
         provider: cfg.provider, model: cfg.model, base_url: cfg.base_url, api_key: cfg.api_key,
       }),
@@ -293,11 +294,11 @@ function openCheck(claim) {
   $("mTitle").textContent = "核对史料";
   $("mBody").innerHTML = `
     <div style="font-size:13px;color:var(--muted)">要核对的 AI 说法：</div>
-    <div class="scenario">${esc(claim)}</div>
+    <div class="scenario" data-no-i18n>${esc(claim)}</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:8px">可对照的史料：</div>
     <div class="src">${sources.length ? sources.map(s => `<div class="item"><b>${esc(s.title || "")}</b>
         <small>${esc(s.kind || "")}${s.note ? " · " + esc(s.note) : ""}</small>
-        ${s.excerpt ? `<div class="excerpt">${esc(s.excerpt)}</div>` : ""}</div>`).join("")
+        ${s.excerpt ? `<div class="excerpt" data-no-i18n>${esc(s.excerpt)}</div>` : ""}</div>`).join("")
       : '<div class="empty">该人物尚未关联史料。</div>'}</div>
     <div style="font-size:13px;color:var(--muted);margin:18px 0 8px">这条说法与史料相符吗？</div>
     <div id="verdicts">
@@ -326,6 +327,7 @@ async function submitCheck() {
       method: "POST",
       body: JSON.stringify({
         figure_id: figure.id, claim: activeClaim, verdict: v.value, basis, student_id: STUDENT,
+        lang: currentLang(),
         provider: cfg.provider, model: cfg.model, base_url: cfg.base_url, api_key: cfg.api_key,
       }),
     });

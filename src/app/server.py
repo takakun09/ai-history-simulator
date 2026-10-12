@@ -16,6 +16,16 @@ WEB = ROOT / "web"
 mimetypes.add_type("image/svg+xml", ".svg")
 mimetypes.add_type("text/javascript", ".js")
 
+LANG_SUFFIX = {
+    "en": "\n\nLanguage: reply in English.",
+    "tw": "\n\n語言：請使用繁體中文回答。",
+}
+
+
+def with_lang(system, lang):
+    return (system or "") + LANG_SUFFIX.get(lang or "zh", "")
+
+
 ROUTES = {"/": "index.html", "/chat": "chat.html", "/teacher": "teacher.html",
           "/analytics": "analytics.html"}
 
@@ -120,7 +130,7 @@ class Handler(BaseHTTPRequestHandler):
                     base_url=body.get("base_url", ""),
                     api_key=body.get("api_key", ""),
                     model=body.get("model", ""),
-                    system=fig.get("system_prompt", ""),
+                    system=with_lang(fig.get("system_prompt", ""), body.get("lang")),
                     messages=messages,
                     figure_name=fig.get("name", ""),
                 )
@@ -161,6 +171,7 @@ class Handler(BaseHTTPRequestHandler):
                     body.get("api_key", ""), body.get("model", ""),
                     fig, dilemma, (opt or {}).get("text", ""), argument,
                     double_score=bool(body.get("double_score")),
+                    lang=body.get("lang", "zh"),
                 )
             except Exception as exc:
                 return self._json({"error": f"{type(exc).__name__}: {exc}"}, 502)
@@ -193,7 +204,7 @@ class Handler(BaseHTTPRequestHandler):
                 result = assessment.check_source(
                     body.get("provider", "mock"), body.get("base_url", ""),
                     body.get("api_key", ""), body.get("model", ""),
-                    fig, claim, verdict, basis,
+                    fig, claim, verdict, basis, lang=body.get("lang", "zh"),
                 )
             except Exception as exc:
                 return self._json({"error": f"{type(exc).__name__}: {exc}"}, 502)

@@ -62,8 +62,8 @@ async function load() {
     return `<div class="rec">
       <div class="rec-head"><b>${esc(r.figure || "")}</b> · ${esc(r.dilemma || "")}
         <span class="rec-score">${res.total ?? "—"} / ${res.max_total ?? "—"}</span></div>
-      <div class="rec-body">选择：${esc(r.choice || "")}</div>
-      <div class="rec-arg">${esc((r.argument || "").slice(0, 120))}${(r.argument || "").length > 120 ? "…" : ""}</div>
+      <div class="rec-body" data-no-i18n>选择：${esc(r.choice || "")}</div>
+      <div class="rec-arg" data-no-i18n>${esc((r.argument || "").slice(0, 120))}${(r.argument || "").length > 120 ? "…" : ""}</div>
       <div class="rec-time">${esc(r.created_at || "")}${r.student_id ? " · " + esc(r.student_id) : ""} ${tags.join(" ")}</div>
     </div>`;
   }).join("") : '<div class="empty">暂无记录。</div>';
