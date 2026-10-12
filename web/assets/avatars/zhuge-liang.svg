@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="诸葛亮卡通形象">
+  <defs>
+    <clipPath id="zl-clip"><circle cx="200" cy="200" r="200"/></clipPath>
+    <linearGradient id="zl-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e6f3ec"/><stop offset="1" stop-color="#c9e3d6"/>
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#zl-clip)">
+    <rect width="400" height="400" fill="url(#zl-bg)"/>
+    <!-- 衣袍 -->
+    <path d="M52 400 Q70 300 200 292 Q330 300 348 400 Z" fill="#2f6f5e"/>
+    <path d="M120 302 Q200 374 280 302 L262 295 Q200 346 138 295 Z" fill="#245a4c" opacity=".5"/>
+    <!-- 交领 -->
+    <path d="M152 294 L200 364 L248 294" fill="none" stroke="#eef5f1" stroke-width="24" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M152 294 L200 364 L248 294" fill="none" stroke="#d8e5dd" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+    <!-- 颈 -->
+    <rect x="184" y="248" width="32" height="58" rx="12" fill="#e3b48c"/>
+    <!-- 头 -->
+    <ellipse cx="200" cy="196" rx="74" ry="82" fill="#f1cbaa"/>
+    <ellipse cx="128" cy="205" rx="13" ry="19" fill="#e3b48c"/>
+    <ellipse cx="272" cy="205" rx="13" ry="19" fill="#e3b48c"/>
+    <!-- 纶巾（帽） -->
+    <path d="M126 176 Q124 106 200 104 Q276 106 274 176 Q200 150 126 176 Z" fill="#7e90a6"/>
+    <path d="M126 158 Q200 178 274 158 L274 176 Q200 196 126 176 Z" fill="#6b7d94"/>
+    <path d="M150 118 Q200 100 250 118" stroke="#95a6b9" stroke-width="4" fill="none"/>
+    <!-- 眉 -->
+    <path d="M154 182 Q172 172 190 182" stroke="#5b4636" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M210 182 Q228 172 246 182" stroke="#5b4636" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <!-- 眼 -->
+    <ellipse cx="172" cy="200" rx="9" ry="7.5" fill="#2b3a4a"/>
+    <ellipse cx="228" cy="200" rx="9" ry="7.5" fill="#2b3a4a"/>
+    <circle cx="175" cy="198" r="2.4" fill="#fff"/><circle cx="231" cy="198" r="2.4" fill="#fff"/>
+    <!-- 鼻 -->
+    <path d="M200 202 Q195 220 205 223" stroke="#d9a982" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <!-- 髭与须 -->
+    <path d="M150 232 Q143 302 200 322 Q257 302 250 232 Q241 266 200 271 Q159 266 150 232 Z" fill="#4b4b4b"/>
+    <path d="M170 228 Q200 242 230 228" stroke="#4b4b4b" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <path d="M188 232 Q200 258 212 232 Z" fill="#3f3f3f"/>
+  </g>
+</svg>

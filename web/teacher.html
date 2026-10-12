@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>教师端 · AI 历史人物模拟器</title>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="dot"></span> AI 历史人物模拟器</div>
+  <nav class="nav"><a href="/">学生端</a><a class="active" href="/teacher">教师端</a></nav>
+</header>
+<div class="console">
+  <aside class="fig-list">
+    <h4>历史人物（全部）</h4>
+    <div id="list"></div>
+    <button class="btn ghost block" id="new" style="margin-top:10px">＋ 新建人物</button>
+  </aside>
+  <section class="editor">
+    <h3 id="title">编辑历史人物</h3>
+    <div class="notice">下面的 <b>「限制词 / system prompt」</b> 就是 AI 扮演该人物的行为约束。修改后点「保存并发布」，学生端立即生效。</div>
+    <div class="grid2">
+      <div class="field"><label>ID（英文，唯一）</label><input id="f_id"></div>
+      <div class="field"><label>姓名</label><input id="f_name"></div>
+      <div class="field"><label>英文名</label><input id="f_name_en"></div>
+      <div class="field"><label>时代</label><input id="f_era"></div>
+      <div class="field"><label>难度</label><input id="f_difficulty"></div>
+      <div class="field"><label>主题色（如 #2f6f5e）</label><input id="f_accent"></div>
+    </div>
+    <div class="field"><label>一句话简介</label><input id="f_tagline"></div>
+    <div class="field"><label>卡通形象路径</label><input id="f_avatar"></div>
+    <div class="field"><label>开场白</label><textarea id="f_opening"></textarea></div>
+    <div class="field mono"><label>限制词 / system prompt（AI 行为约束）</label><textarea id="f_prompt" style="min-height:190px"></textarea></div>
+    <div class="field"><label>史料（每行一条：标题 | 类型 | 备注）</label><textarea id="f_sources"></textarea></div>
+    <div class="field"><label>建议问题（每行一条）</label><textarea id="f_questions"></textarea></div>
+    <div class="field"><label class="toggle"><input type="checkbox" id="f_published"> 已发布（学生端可见）</label></div>
+    <div class="row-actions">
+      <button class="btn" id="save">💾 保存并发布</button>
+      <a class="btn ghost" id="test" target="_blank">以学生身份测试</a>
+      <button class="btn danger" id="del">删除</button>
+      <span id="status" style="align-self:center;color:var(--muted);font-size:13px"></span>
+    </div>
+  </section>
+</div>
+<script type="module" src="/assets/teacher.js"></script>
+</body>
+</html>

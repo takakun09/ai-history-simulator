@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 历史人物模拟器 · 学生端</title>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="dot"></span> AI 历史人物模拟器</div>
+  <nav class="nav">
+    <a class="active" href="/">学生端</a>
+    <a href="/teacher">教师端</a>
+  </nav>
+</header>
+<main class="container">
+  <div class="hero">
+    <h1>选择一位历史人物，开始一场对话</h1>
+    <p>这里的 AI 扮演的不是「全知百科」，而是<b>有立场、可能带偏见的历史当事人</b>。
+       向他提问、追问、质疑——再想一想：你凭什么相信他说的？</p>
+  </div>
+  <div class="figure-grid" id="grid"><div class="empty">加载中…</div></div>
+</main>
+<script type="module">
+import { api, esc } from "/assets/app.js";
+async function load(){
+  const { figures } = await api("/api/figures?scope=student");
+  const grid = document.getElementById("grid");
+  if(!figures.length){ grid.innerHTML = '<div class="empty">暂无已发布的历史人物。请到教师端发布。</div>'; return; }
+  grid.innerHTML = figures.map(f=>`
+    <article class="figure-card" style="--accent:${esc(f.accent||"#2b4162")}">
+      <div class="banner"></div>
+      <div class="body">
+        <img class="avatar" src="/${esc(f.avatar||"")}" alt="${esc(f.name)}">
+        <div>
+          <h3>${esc(f.name)}</h3>
+          <div class="era">${esc(f.era||"")}</div>
+        </div>
+        <div class="tagline">${esc(f.tagline||"")}</div>
+        <div class="meta">
+          <span class="pill">${esc(f.difficulty||"通用")}</span>
+          <span class="pill">${(f.sources||[]).length} 份史料</span>
+        </div>
+        <a class="btn block" href="/chat?figure=${encodeURIComponent(f.id)}">与他对话 →</a>
+      </div>
+    </article>`).join("");
+}
+load().catch(e => { document.getElementById("grid").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`; });
+</script>
+</body>
+</html>

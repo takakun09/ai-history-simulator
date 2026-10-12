@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="林肯卡通形象">
+  <defs>
+    <clipPath id="li-clip"><circle cx="200" cy="200" r="200"/></clipPath>
+    <linearGradient id="li-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e4e9f1"/><stop offset="1" stop-color="#cdd6e4"/>
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#li-clip)">
+    <rect width="400" height="400" fill="url(#li-bg)"/>
+    <!-- 西装 -->
+    <path d="M52 400 Q70 304 200 298 Q330 304 348 400 Z" fill="#23303f"/>
+    <path d="M160 300 L200 372 L240 300 L222 296 L200 344 L178 296 Z" fill="#ffffff"/>
+    <path d="M176 300 L200 348 L224 300" fill="none" stroke="#e6e9ee" stroke-width="3"/>
+    <!-- 领结 -->
+    <path d="M200 320 L176 308 L176 336 Z" fill="#121a24"/>
+    <path d="M200 320 L224 308 L224 336 Z" fill="#121a24"/>
+    <circle cx="200" cy="322" r="7" fill="#2b3745"/>
+    <!-- 颈 -->
+    <rect x="184" y="250" width="32" height="56" rx="12" fill="#e0ac82"/>
+    <!-- 头（瘦长） -->
+    <path d="M132 196 Q132 128 200 126 Q268 128 268 196 Q268 268 200 276 Q132 268 132 196 Z" fill="#eec6a1"/>
+    <ellipse cx="130" cy="204" rx="13" ry="20" fill="#e0ac82"/>
+    <ellipse cx="270" cy="204" rx="13" ry="20" fill="#e0ac82"/>
+    <!-- 头发 -->
+    <path d="M132 190 Q130 122 200 118 Q270 122 268 190 Q262 168 246 158 Q200 144 154 158 Q138 168 132 190 Z" fill="#3b3129"/>
+    <!-- 眉毛 -->
+    <path d="M150 182 Q170 172 190 181" stroke="#3b3129" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M210 181 Q230 172 250 182" stroke="#3b3129" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <!-- 眼（深邃） -->
+    <ellipse cx="170" cy="200" rx="9" ry="8" fill="#2f3a48"/>
+    <ellipse cx="230" cy="200" rx="9" ry="8" fill="#2f3a48"/>
+    <circle cx="173" cy="198" r="2.4" fill="#fff"/><circle cx="233" cy="198" r="2.4" fill="#fff"/>
+    <path d="M160 190 Q170 186 180 190" stroke="#c99a76" stroke-width="2" fill="none"/>
+    <path d="M220 190 Q230 186 240 190" stroke="#c99a76" stroke-width="2" fill="none"/>
+    <!-- 鼻 -->
+    <path d="M200 200 Q194 224 206 226" stroke="#d19d76" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+    <!-- 下巴络腮胡 -->
+    <path d="M150 232 Q146 292 200 306 Q254 292 250 232 Q244 260 200 262 Q156 260 150 232 Z" fill="#3b3129"/>
+    <path d="M186 240 Q200 246 214 240" stroke="#2e261f" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- 高礼帽 -->
+    <g>
+      <rect x="146" y="34" width="108" height="86" rx="8" fill="#1b2430"/>
+      <rect x="140" y="112" width="120" height="16" rx="8" fill="#131a24"/>
+      <rect x="146" y="88" width="108" height="14" fill="#2b3745"/>
+    </g>
+  </g>
+</svg>

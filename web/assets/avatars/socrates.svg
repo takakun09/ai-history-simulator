@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="苏格拉底卡通形象">
+  <defs>
+    <clipPath id="so-clip"><circle cx="200" cy="200" r="200"/></clipPath>
+    <linearGradient id="so-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e2ecf9"/><stop offset="1" stop-color="#c3d7ef"/>
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#so-clip)">
+    <rect width="400" height="400" fill="url(#so-bg)"/>
+    <!-- 希顿长袍 -->
+    <path d="M46 400 Q66 296 200 290 Q334 296 354 400 Z" fill="#f2ede2"/>
+    <path d="M120 300 Q200 356 300 300 L300 314 Q210 372 120 314 Z" fill="#e2dacb"/>
+    <path d="M150 296 Q200 372 262 300" fill="none" stroke="#d8cfbe" stroke-width="6"/>
+    <!-- 肩褶（搭在左肩的长袍） -->
+    <path d="M250 292 Q312 306 336 380 L300 400 Q286 330 236 306 Z" fill="#e6dfd0"/>
+    <!-- 颈 -->
+    <rect x="184" y="246" width="32" height="56" rx="12" fill="#dda87b"/>
+    <!-- 头 -->
+    <ellipse cx="200" cy="192" rx="72" ry="80" fill="#eabf95"/>
+    <ellipse cx="130" cy="200" rx="12" ry="18" fill="#dda87b"/>
+    <ellipse cx="270" cy="200" rx="12" ry="18" fill="#dda87b"/>
+    <!-- 秃顶高光 -->
+    <ellipse cx="200" cy="146" rx="52" ry="30" fill="#f2cfa9" opacity=".7"/>
+    <!-- 卷发（两侧） -->
+    <g fill="#b7b0a3">
+      <circle cx="136" cy="176" r="20"/><circle cx="128" cy="204" r="18"/>
+      <circle cx="264" cy="176" r="20"/><circle cx="272" cy="204" r="18"/>
+      <circle cx="146" cy="156" r="16"/><circle cx="254" cy="156" r="16"/>
+    </g>
+    <!-- 眉 -->
+    <path d="M152 180 Q172 168 192 180" stroke="#8d867a" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <path d="M208 180 Q228 168 248 180" stroke="#8d867a" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <!-- 眼 -->
+    <ellipse cx="170" cy="199" rx="9" ry="8" fill="#33404f"/>
+    <ellipse cx="230" cy="199" rx="9" ry="8" fill="#33404f"/>
+    <circle cx="173" cy="197" r="2.5" fill="#fff"/><circle cx="233" cy="197" r="2.5" fill="#fff"/>
+    <!-- 大鼻子 -->
+    <path d="M200 196 Q190 228 204 232 Q214 232 210 222" stroke="#d49b6e" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- 大胡子 -->
+    <path d="M150 232 Q142 300 200 322 Q258 300 250 232 Q240 268 200 272 Q160 268 150 232 Z" fill="#c2bbad"/>
+    <path d="M172 240 Q200 252 228 240" stroke="#a9a294" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <!-- 嘴（藏在胡子后，露出一线） -->
+    <path d="M188 244 Q200 250 212 244" stroke="#a2603c" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

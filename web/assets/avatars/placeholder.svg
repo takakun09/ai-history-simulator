@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="占位形象">
+  <circle cx="200" cy="200" r="200" fill="#e8ecf2"/>
+  <circle cx="200" cy="168" r="70" fill="#c3ccd9"/>
+  <path d="M70 400 Q90 300 200 296 Q310 300 330 400 Z" fill="#c3ccd9"/>
+  <circle cx="176" cy="160" r="9" fill="#8f9aa9"/><circle cx="224" cy="160" r="9" fill="#8f9aa9"/>
+  <path d="M176 198 Q200 212 224 198" stroke="#8f9aa9" stroke-width="6" fill="none" stroke-linecap="round"/>
+</svg>

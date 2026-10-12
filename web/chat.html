@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>对话 · AI 历史人物模拟器</title>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="dot"></span> AI 历史人物模拟器</div>
+  <nav class="nav">
+    <a href="/">学生端</a>
+    <a href="/teacher">教师端</a>
+  </nav>
+</header>
+<div class="chat-page">
+  <section class="chat-main">
+    <div class="chat-head">
+      <img id="avatar" src="" alt="">
+      <div class="who"><h2 id="name">加载中…</h2><span id="era"></span></div>
+      <a class="btn ghost" href="/">← 返回</a>
+      <button class="btn ghost" id="newchat">＋ 新对话</button>
+    </div>
+    <div class="messages" id="messages"></div>
+    <div class="composer">
+      <div class="row">
+        <textarea id="input" rows="1" placeholder="向这位历史人物提问…（Enter 发送 / Shift+Enter 换行）"></textarea>
+        <button class="btn" id="send">发送</button>
+      </div>
+      <div class="api-bar">
+        <label for="provider">API 接口</label>
+        <select id="provider"></select>
+        <input id="model" placeholder="模型名">
+        <input id="base_url" placeholder="Base URL" class="grow">
+        <input id="api_key" type="password" placeholder="API Key（仅本机浏览器保存）">
+      </div>
+    </div>
+  </section>
+  <aside class="side">
+    <div class="panel"><h4>可查证的史料</h4><div class="src" id="sources"></div></div>
+    <div class="panel"><h4>可以这样问</h4><div id="questions"></div></div>
+    <div class="panel"><h4>提示</h4>
+      <div class="notice">这位人物<b>有立场、可能带偏见</b>。别急着相信——先追问他「你怎么知道的」，再对照史料。</div>
+    </div>
+  </aside>
+</div>
+<script type="module" src="/assets/chat.js"></script>
+</body>
+</html>
