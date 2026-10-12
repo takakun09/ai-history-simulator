@@ -8,3 +8,4 @@ work/
 .DS_Store
 data/figures.local.json
 data/*.json
+*.bundle
