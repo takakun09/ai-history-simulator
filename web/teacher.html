@@ -17,30 +17,70 @@
     <div id="list"></div>
     <button class="btn ghost block" id="new" style="margin-top:10px">＋ 新建人物</button>
   </aside>
+
   <section class="editor">
     <h3 id="title">编辑历史人物</h3>
-    <div class="notice">下面的 <b>「限制词 / system prompt」</b> 就是 AI 扮演该人物的行为约束。修改后点「保存并发布」，学生端立即生效。</div>
-    <div class="grid2">
-      <div class="field"><label>ID（英文，唯一）</label><input id="f_id"></div>
-      <div class="field"><label>姓名</label><input id="f_name"></div>
-      <div class="field"><label>英文名</label><input id="f_name_en"></div>
-      <div class="field"><label>时代</label><input id="f_era"></div>
-      <div class="field"><label>难度</label><input id="f_difficulty"></div>
-      <div class="field"><label>主题色（如 #2f6f5e）</label><input id="f_accent"></div>
+    <div class="notice">每个板块独立编辑。列表类内容（史料 / 问题 / 抉择 / 选项）都可以<b>单独增删改</b>。改完点底部「保存并发布」同步到学生端。</div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="basic">基本信息</button>
+      <button class="tab" data-tab="persona">人物设定</button>
+      <button class="tab" data-tab="sources">史料 <span class="cnt" id="cntSources">0</span></button>
+      <button class="tab" data-tab="questions">建议问题 <span class="cnt" id="cntQuestions">0</span></button>
+      <button class="tab" data-tab="dilemmas">抉择节点 <span class="cnt" id="cntDilemmas">0</span></button>
+      <button class="tab" data-tab="publish">发布</button>
     </div>
-    <div class="field"><label>一句话简介</label><input id="f_tagline"></div>
-    <div class="field"><label>卡通形象路径</label><input id="f_avatar"></div>
-    <div class="field"><label>开场白</label><textarea id="f_opening"></textarea></div>
-    <div class="field mono"><label>限制词 / system prompt（AI 行为约束）</label><textarea id="f_prompt" style="min-height:190px"></textarea></div>
-    <div class="field"><label>史料（每行一条：标题 | 类型 | 备注 | 摘要）</label><textarea id="f_sources"></textarea></div>
-    <div class="field"><label>建议问题（每行一条）</label><textarea id="f_questions"></textarea></div>
-    <div class="field"><label>抉择节点（每块用 <code>---</code> 分隔；格式：<code># 标题</code> / <code>情境：…</code> / <code>选项：A | B | C</code> / <code>提示：…</code>）</label><textarea id="f_dilemmas" style="min-height:170px"></textarea></div>
-    <div class="field"><label class="toggle"><input type="checkbox" id="f_published"> 已发布（学生端可见）</label></div>
-    <div class="row-actions">
+
+    <div class="tabpane active" id="pane-basic">
+      <div class="grid2">
+        <div class="field"><label>ID（英文，唯一）</label><input id="f_id"></div>
+        <div class="field"><label>姓名</label><input id="f_name"></div>
+        <div class="field"><label>英文名</label><input id="f_name_en"></div>
+        <div class="field"><label>时代</label><input id="f_era"></div>
+        <div class="field"><label>难度</label>
+          <select id="f_difficulty"><option>入门</option><option>进阶</option><option>挑战</option></select>
+        </div>
+        <div class="field"><label>主题色</label>
+          <div class="accent-row"><input type="color" id="f_accent_color"><input id="f_accent" placeholder="#2b4162"></div>
+        </div>
+      </div>
+      <div class="field"><label>一句话简介</label><input id="f_tagline"></div>
+      <div class="field"><label>卡通形象路径</label><input id="f_avatar" placeholder="assets/avatars/xxx.svg"></div>
+    </div>
+
+    <div class="tabpane" id="pane-persona">
+      <div class="field"><label>开场白（学生进入对话时看到的第一句）</label><textarea id="f_opening"></textarea></div>
+      <div class="field mono"><label>限制词 / system prompt（AI 扮演该人物的行为约束）</label><textarea id="f_prompt" style="min-height:240px"></textarea></div>
+    </div>
+
+    <div class="tabpane" id="pane-sources">
+      <div class="section-hint">每份史料独立一张卡片。类型下拉可直接选择，没有合适的就选「自定义」自行填写。</div>
+      <div id="sourcesList"></div>
+      <button class="add-btn" id="addSource">＋ 添加一份史料</button>
+    </div>
+
+    <div class="tabpane" id="pane-questions">
+      <div class="section-hint">这些会显示在学生端右侧「可以这样问」。</div>
+      <div id="questionsList"></div>
+      <button class="add-btn" id="addQuestion">＋ 添加一个问题</button>
+    </div>
+
+    <div class="tabpane" id="pane-dilemmas">
+      <div class="section-hint">每个抉择节点 = 情境 + 若干选项 + 提示。学生将从中选择并提交论证。</div>
+      <div id="dilemmasList"></div>
+      <button class="add-btn" id="addDilemma">＋ 添加一个抉择节点</button>
+    </div>
+
+    <div class="tabpane" id="pane-publish">
+      <div class="field"><label class="toggle"><input type="checkbox" id="f_published"> 已发布（学生端可见）</label></div>
+      <div class="section-hint">「保存并发布」后，学生端立即生效。</div>
+    </div>
+
+    <div class="actionbar">
       <button class="btn" id="save">💾 保存并发布</button>
       <a class="btn ghost" id="test" target="_blank">以学生身份测试</a>
-      <button class="btn danger" id="del">删除</button>
-      <span id="status" style="align-self:center;color:var(--muted);font-size:13px"></span>
+      <button class="btn danger" id="del">删除此人物</button>
+      <span id="status"></span>
     </div>
   </section>
 </div>
