@@ -59,6 +59,44 @@
     </div>
 
     <div class="tabpane" id="pane-persona">
+      <div class="wizard">
+        <div class="wizard-head"><b>⚡ 快速生成限制词</b></div>
+        <div class="section-hint">只填几句话，系统会按统一模板补成结构完整的限制词（身份与立场 / 知识边界 / 作为有立场者 / 教学约束）。<b>不依赖 AI 也能用。</b></div>
+        <div class="grid2">
+          <div class="field"><label>姓名</label><input id="wz_name"></div>
+          <div class="field"><label>时代</label><input id="wz_era"></div>
+          <div class="field"><label>身份 / 角色</label><input id="wz_role" placeholder="如：蜀汉丞相"></div>
+          <div class="field"><label>主要立场</label><input id="wz_stance" placeholder="如：主张北伐、反对偏安"></div>
+          <div class="field"><label>学生扮演</label><input id="wz_student" placeholder="如：来访的年轻属吏"></div>
+          <div class="field"><label>回答长度上限</label><input id="wz_limit" placeholder="如：120 字"></div>
+        </div>
+        <div class="row-actions">
+          <button class="btn" id="wzGen">✨ 按模板生成</button>
+          <button class="btn ghost" id="wzGenAi">🤖 交给 AI 增强</button>
+          <span class="avatar-msg" id="wzMsg"></span>
+        </div>
+        <div class="api-mini">
+          <span class="mini">AI 增强需要接口</span>
+          <select id="wz_provider"></select>
+          <input id="wz_model" placeholder="模型名">
+          <input id="wz_key" type="password" placeholder="API Key（仅本机浏览器保存）">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>📄 拖入人物设定文档（.md / .txt / .docx）</label>
+        <div class="doc-drop" id="docDrop" tabindex="0">
+          <div class="avatar-drop-hint">把文档拖到这里，或点击选择</div>
+        </div>
+        <input type="file" id="docFile" accept=".md,.markdown,.txt,.docx" hidden>
+        <textarea id="docPreview" rows="6" hidden placeholder="文档内容预览"></textarea>
+        <div class="row-actions" id="docActions" hidden>
+          <button class="btn" id="docUse">填入限制词</button>
+          <button class="btn ghost" id="docPolish">✨ 规范成模板</button>
+        </div>
+        <div class="avatar-msg" id="docMsg"></div>
+      </div>
+
       <div class="field"><label>开场白（学生进入对话时看到的第一句）</label><textarea id="f_opening"></textarea></div>
       <div class="field mono"><label>限制词 / system prompt（AI 扮演该人物的行为约束）</label><textarea id="f_prompt" style="min-height:240px"></textarea></div>
     </div>

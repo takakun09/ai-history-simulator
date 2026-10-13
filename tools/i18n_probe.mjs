@@ -81,6 +81,9 @@ const dynCases = [
   ["拖拽图片到此处，或点击选择", "Drag an image here, or click to choose"],
   ["只支持 PNG / JPG / WEBP / GIF 图片", "Only PNG / JPG / WEBP / GIF are supported"],
   ["上传中…", "Uploading…"],
+  ["⚡ 快速生成限制词", "⚡ Generate the persona prompt"],
+  ["✨ 按模板生成", "✨ Generate from template"],
+  ["把文档拖到这里，或点击选择", "Drop the document here, or click to choose"],
 ];
 for (const [input, want] of dynCases) {
   const n = text(input);

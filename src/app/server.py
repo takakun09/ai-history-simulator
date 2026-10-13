@@ -9,7 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from . import assessment, profile, providers, rubric, store, uploads
+from . import assessment, documents, persona, profile, providers, rubric, store, uploads
 
 ROOT = Path(__file__).resolve().parents[2]
 WEB = ROOT / "web"
@@ -228,6 +228,23 @@ class Handler(BaseHTTPRequestHandler):
             except OSError as exc:
                 return self._json({"error": f"写入失败：{exc}", "code": "io_error"}, 500)
             return self._json({"path": rel})
+
+        if path == "/api/persona":
+            result = persona.generate(
+                body.get("provider", "mock"), body.get("base_url", ""),
+                body.get("api_key", ""), body.get("model", ""),
+                body.get("fields") or {}, body.get("brief", ""), body.get("mode", "template"),
+            )
+            return self._json(result)
+
+        if path == "/api/extract":
+            try:
+                text = documents.extract_text(body.get("filename", ""), body.get("data", ""))
+            except documents.ExtractError as exc:
+                code = exc.args[0] if exc.args else "bad_data"
+                return self._json(
+                    {"error": documents.ERROR_TEXT.get(code, "读取失败"), "code": code}, 400)
+            return self._json({"text": text})
 
         return self._json({"error": "not found"}, 404)
 

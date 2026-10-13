@@ -258,6 +258,38 @@ const DICT = {
   "用现在的是非直接评判古人。": ["用現在的是非直接評判古人。", "Judges people of the past directly by today's right and wrong."],
   "能说出当时人的处境与限制，并据此解释其动机。": ["能說出當時人的處境與限制，並據此解釋其動機。", "Describes the constraints people faced, and explains their motives from there."],
 
+  // ---- 限制词向导 / 文档导入 ----
+  "⚡ 快速生成限制词": ["⚡ 快速產生限制詞", "⚡ Generate the persona prompt"],
+  "只填几句话，系统会按统一模板补成结构完整的限制词（身份与立场 / 知识边界 / 作为有立场者 / 教学约束）。": ["只填幾句話，系統會依統一模板補成結構完整的限制詞（身分與立場 / 知識邊界 / 作為有立場者 / 教學約束）。", "Fill in a few fields and the system completes a full prompt from one template (identity & stance / knowledge limits / as a partisan actor / teaching constraints)."],
+  "不依赖 AI 也能用。": ["不依賴 AI 也能用。", "Works without any AI."],
+  "身份 / 角色": ["身分 / 角色", "Identity / role"],
+  "主要立场": ["主要立場", "Main stance"],
+  "学生扮演": ["學生扮演", "Student plays"],
+  "回答长度上限": ["回答長度上限", "Answer length limit"],
+  "✨ 按模板生成": ["✨ 依模板產生", "✨ Generate from template"],
+  "🤖 交给 AI 增强": ["🤖 交給 AI 增強", "🤖 Enhance with AI"],
+  "AI 增强需要接口": ["AI 增強需要介面", "AI enhancement needs an API"],
+  "📄 拖入人物设定文档（.md / .txt / .docx）": ["📄 拖入人物設定文件（.md / .txt / .docx）", "📄 Drop a persona document (.md / .txt / .docx)"],
+  "把文档拖到这里，或点击选择": ["把文件拖到此處，或點擊選擇", "Drop the document here, or click to choose"],
+  "文档内容预览": ["文件內容預覽", "Document preview"],
+  "填入限制词": ["填入限制詞", "Use as persona prompt"],
+  "✨ 规范成模板": ["✨ 規範成模板", "✨ Normalise into the template"],
+  "生成中…": ["產生中…", "Generating…"],
+  "AI 已生成": ["AI 已產生", "Generated with AI"],
+  "已按模板生成": ["已依模板產生", "Generated from template"],
+  "生成失败：": ["產生失敗：", "Generation failed: "],
+  "读取中…": ["讀取中…", "Reading…"],
+  "文档已读取，可查看后选择如何使用": ["文件已讀取，可查看後選擇如何使用", "Document loaded — review it, then choose how to use it"],
+  "已填入限制词": ["已填入限制詞", "Inserted as the persona prompt"],
+  "文档读取失败": ["文件讀取失敗", "Could not read the document"],
+  "只支持 .md / .txt / .docx 文档": ["只支援 .md / .txt / .docx 文件", "Only .md / .txt / .docx are supported"],
+  "文档太大，请控制在 5MB 以内": ["文件太大，請控制在 5MB 以內", "Document too large — please keep it under 5 MB"],
+  "文档内容读取失败": ["文件內容讀取失敗", "Could not read the document content"],
+  "如：蜀汉丞相": ["如：蜀漢丞相", "e.g. Chancellor of Shu Han"],
+  "如：主张北伐、反对偏安": ["如：主張北伐、反對偏安", "e.g. advocates the northern campaigns"],
+  "如：来访的年轻属吏": ["如：來訪的年輕屬吏", "e.g. a young visiting official"],
+  "如：120 字": ["如：120 字", "e.g. 120 words"],
+
   // ---- 快捷追问 ----
   "你的依据是什么？": ["你的依據是什麼？", "What's your evidence?"],
   "还有别的说法吗？": ["還有別的說法嗎？", "Are there other accounts?"],
@@ -275,7 +307,7 @@ const DICT = {
 
 const PREFIX_KEYS = [
   "全体最需要加强：", "最需要加强：", "找不到该人物：", "元认知提示：",
-  "你的判断：", "总分", "API：",
+  "你的判断：", "总分", "API：", "生成失败：",
   "保存失败：", "删除失败：", "提交失败：", "调用失败：", "加载失败：",
   "核对失败：", "选择：", "编辑：", "抉择：",
 ];

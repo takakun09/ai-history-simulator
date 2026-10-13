@@ -1,4 +1,4 @@
-import { api, esc } from "/assets/app.js";
+import { api, esc, store } from "/assets/app.js";
 
 const $ = (id) => document.getElementById(id);
 const SOURCE_KINDS = ["一手", "二手", "正史", "文献", "图像", "考古"];
@@ -89,6 +89,8 @@ function fill(f) {
   avatarMsg("");
   $("f_opening").value = draft.opening || "";
   $("f_prompt").value = draft.system_prompt || "";
+  $("wz_name").value = draft.name || "";
+  $("wz_era").value = draft.era || "";
   $("f_published").checked = !!draft.published;
   $("test").href = draft.id ? `/chat?figure=${encodeURIComponent(draft.id)}` : "#";
   $("status").textContent = "";
@@ -456,3 +458,145 @@ function initAvatarDrop() {
 }
 
 initAvatarDrop();
+initWizard();
+initDocDrop();
+
+
+/* ---------- 人物限制词向导（P0-7） ---------- */
+let docText = "";
+
+function noteMsg(id, text, ok) {
+  const el = $(id);
+  if (!el) return;
+  el.textContent = text || "";
+  el.classList.toggle("ok", !!ok);
+  el.classList.toggle("bad", !!text && !ok);
+}
+
+function wzFields() {
+  return {
+    name: $("wz_name").value.trim(),
+    era: $("wz_era").value.trim(),
+    role: $("wz_role").value.trim(),
+    stance: $("wz_stance").value.trim(),
+    student_role: $("wz_student").value.trim(),
+    limit: $("wz_limit").value.trim(),
+  };
+}
+
+async function generatePersona(mode, brief) {
+  noteMsg("wzMsg", "生成中…");
+  const cfg = store.get("hs_api", {});
+  try {
+    const r = await api("/api/persona", {
+      method: "POST",
+      body: JSON.stringify({
+        fields: wzFields(), mode, brief: brief || "",
+        provider: cfg.provider || "mock", model: cfg.model || "",
+        base_url: cfg.base_url || "", api_key: cfg.api_key || "",
+      }),
+    });
+    $("f_prompt").value = r.prompt;
+    if (draft) draft.system_prompt = r.prompt;
+    const base = r.mode === "ai" ? "AI 已生成" : "已按模板生成";
+    noteMsg("wzMsg", r.note ? `${base}（${r.note}）` : base, true);
+    refreshDirty();
+  } catch (e) {
+    noteMsg("wzMsg", "生成失败：" + e.message);
+  }
+}
+
+async function initWizard() {
+  try {
+    const { providers } = await api("/api/providers");
+    const sel = $("wz_provider");
+    sel.innerHTML = providers.map((p) => `<option value="${p.id}">${esc(p.label)}</option>`).join("");
+    const cfg = store.get("hs_api", { provider: "mock", model: "", base_url: "", api_key: "" });
+    sel.value = cfg.provider || "mock";
+    const cur = providers.find((p) => p.id === sel.value) || providers[0];
+    $("wz_model").value = cfg.model || cur.default_model || "";
+    $("wz_key").value = cfg.api_key || "";
+
+    const save = () => {
+      const p = providers.find((x) => x.id === sel.value) || providers[0];
+      store.set("hs_api", {
+        provider: sel.value, model: $("wz_model").value,
+        base_url: p.default_base_url || "", api_key: $("wz_key").value,
+      });
+    };
+    sel.addEventListener("change", () => {
+      const p = providers.find((x) => x.id === sel.value) || providers[0];
+      $("wz_model").value = p.default_model || "";
+      save();
+    });
+    ["wz_model", "wz_key"].forEach((id) => $(id).addEventListener("input", save));
+  } catch (e) { /* 拿不到接口列表也不影响模板生成 */ }
+
+  $("wzGen").onclick = () => generatePersona("template");
+  $("wzGenAi").onclick = () => generatePersona("ai");
+  // 基本信息里的姓名/时代自动带过来，老师不用填两遍
+  $("f_name").addEventListener("input", () => { $("wz_name").value = $("f_name").value; });
+  $("f_era").addEventListener("input", () => { $("wz_era").value = $("f_era").value; });
+}
+
+/* ---------- 人物设定文档导入（P0-7） ---------- */
+const DOC_ERR = {
+  unsupported_type: "只支持 .md / .txt / .docx 文档",
+  too_large: "文档太大，请控制在 5MB 以内",
+  bad_data: "文档内容读取失败",
+};
+
+function showDoc(text) {
+  docText = text || "";
+  $("docPreview").value = docText;
+  $("docPreview").hidden = !docText;
+  $("docActions").hidden = !docText;
+}
+
+async function handleDoc(file) {
+  if (!file) return;
+  noteMsg("docMsg", "读取中…");
+  try {
+    const data = await new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result);
+      fr.onerror = () => reject(new Error("read"));
+      fr.readAsDataURL(file);
+    });
+    const r = await api("/api/extract", {
+      method: "POST",
+      body: JSON.stringify({ filename: file.name, data }),
+    });
+    showDoc(r.text);
+    noteMsg("docMsg", "文档已读取，可查看后选择如何使用", true);
+  } catch (e) {
+    noteMsg("docMsg", DOC_ERR[(e && e.code) || ""] || "文档读取失败");
+  }
+}
+
+function initDocDrop() {
+  const drop = $("docDrop");
+  const file = $("docFile");
+  if (!drop || !file) return;
+  drop.onclick = () => file.click();
+  drop.onkeydown = (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); file.click(); }
+  };
+  file.onchange = () => { handleDoc(file.files[0]); file.value = ""; };
+  ["dragenter", "dragover"].forEach((ev) =>
+    drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("dragover"); }));
+  ["dragleave", "drop"].forEach((ev) =>
+    drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("dragover"); }));
+  drop.addEventListener("drop", (e) => {
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    handleDoc(f);
+  });
+
+  $("docUse").onclick = () => {
+    $("f_prompt").value = docText;
+    if (draft) draft.system_prompt = docText;
+    noteMsg("docMsg", "已填入限制词", true);
+    refreshDirty();
+  };
+  $("docPolish").onclick = () => generatePersona("ai", docText);
+}
