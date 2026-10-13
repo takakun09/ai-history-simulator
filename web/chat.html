@@ -15,22 +15,31 @@
     <a href="/analytics">学情分析</a>
   </nav>
 </header>
-<div class="chat-page">
+
+<div class="chat-page" id="chatPage">
   <section class="chat-main">
     <div class="chat-head">
       <img id="avatar" src="" alt="">
       <div class="who"><h2 id="name">加载中…</h2><span id="era"></span></div>
+      <button class="btn ghost" id="drawerBtn">📋 资料与任务<span class="badge-dot" id="drawerBadge" hidden>0</span></button>
       <a class="btn ghost" href="/">← 返回</a>
       <button class="btn ghost" id="newchat">＋ 新对话</button>
     </div>
+
     <div class="messages" id="messages" data-no-i18n></div>
+
     <div class="composer">
       <div class="quickask" id="quickask"></div>
       <div class="row">
         <textarea id="input" rows="1" placeholder="向这位历史人物提问…（Enter 发送 / Shift+Enter 换行）"></textarea>
         <button class="btn" id="send">发送</button>
       </div>
-      <div class="api-bar">
+      <div class="api-line">
+        <button type="button" class="api-toggle" id="apiToggle">
+          <span class="api-summary" id="apiSummary">API：离线演示</span><span>⚙️</span>
+        </button>
+      </div>
+      <div class="api-bar" id="apiBar" hidden>
         <label for="provider">API 接口</label>
         <select id="provider"></select>
         <input id="model" placeholder="模型名">
@@ -39,16 +48,24 @@
       </div>
     </div>
   </section>
-  <aside class="side">
-    <div class="panel"><h4>我的历史思维画像</h4><div id="profile"></div></div>
-    <div class="panel"><h4>抉择任务</h4><div id="dilemmas"></div></div>
-    <div class="panel"><h4>可查证的史料</h4><div class="src" id="sources"></div></div>
-    <div class="panel"><h4>可以这样问</h4><div id="questions"></div></div>
-    <div class="panel"><h4>提示</h4>
-      <div class="notice">这位人物<b>有立场、可能带偏见</b>。别急着相信——先追问他「你怎么知道的」，再对照史料。</div>
+
+  <aside class="side" id="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <h3>资料与任务</h3>
+      <button class="icon-btn" id="drawerClose" title="关闭">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="panel"><h4>抉择任务</h4><div id="dilemmas"></div></div>
+      <div class="panel"><h4>我的历史思维画像</h4><div id="profile"></div></div>
+      <div class="panel"><h4>可查证的史料</h4><div class="src" id="sources"></div></div>
+      <div class="panel"><h4>可以这样问</h4><div id="questions"></div></div>
+      <div class="panel"><h4>提示</h4>
+        <div class="notice">这位人物<b>有立场、可能带偏见</b>。别急着相信——先追问他「你怎么知道的」，再对照史料。</div>
+      </div>
     </div>
   </aside>
 </div>
+
 <div class="modal-mask" id="modal" hidden>
   <div class="modal">
     <div class="modal-head"><h3 id="mTitle">抉择</h3><button class="btn ghost" id="mClose">关闭</button></div>

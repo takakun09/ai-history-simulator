@@ -21,6 +21,12 @@ const DICT = {
   "发送": ["傳送", "Send"],
   "删除": ["刪除", "Delete"],
   "提示": ["提示", "Hint"],
+  "资料与任务": ["資料與任務", "Resources & tasks"],
+  "API：": ["API：", "API: "],
+  "离线演示（无需 API）": ["離線演示（無需 API）", "Offline demo (no API needed)"],
+  "OpenAI 兼容（OpenAI / DeepSeek / 通义 / 智谱 …）": ["OpenAI 相容（OpenAI / DeepSeek / 通義 / 智譜 …）", "OpenAI-compatible (OpenAI / DeepSeek / Qwen / Zhipu …)"],
+  "本地 Ollama": ["本地 Ollama", "Local Ollama"],
+  "Anthropic Claude": ["Anthropic Claude", "Anthropic Claude"],
   "开始": ["開始", "Start"],
   "级提示（不扣分，仅供教师参考）。": ["級提示（不扣分，僅供教師參考）。", " hint(s) — no penalty, shown to the teacher only."],
   "低估": ["低估", "under-rated"],
@@ -260,7 +266,7 @@ const DICT = {
 
 const PREFIX_KEYS = [
   "全体最需要加强：", "最需要加强：", "找不到该人物：", "元认知提示：",
-  "你的判断：", "总分",
+  "你的判断：", "总分", "API：",
   "保存失败：", "删除失败：", "提交失败：", "调用失败：", "加载失败：",
   "核对失败：", "选择：", "编辑：", "抉择：",
 ];
@@ -395,6 +401,8 @@ export function setLang(lang) {
   LANG = lang;
   localStorage.setItem(LS_KEY, lang);
   runPass();                                  // 立即生效，不等 observer
+  // 通知页面：动态拼出来的文案（如 API 摘要）需要按新语言重算
+  try { document.dispatchEvent(new CustomEvent("i18n:changed")); } catch (e) { /* ignore */ }
 }
 
 function mountSwitcher() {

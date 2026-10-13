@@ -28,7 +28,8 @@ async function boot() {
   $("avatar").src = "/" + (figure.avatar || "");
   $("name").textContent = figure.name;
   $("era").textContent = figure.era || "";
-  renderSources(); renderQuestions(); renderDilemmas(); renderQuickAsk(); resetChat(); await setupProviders(); loadProfile();
+  renderSources(); renderQuestions(); renderDilemmas(); renderQuickAsk(); resetChat(); initDrawer();
+  await setupProviders(); initApiBar(); loadProfile();
 }
 
 function renderSources() {
@@ -97,6 +98,7 @@ async function setupProviders() {
   sel.innerHTML = providers.map(p => `<option value="${p.id}">${esc(p.label)}</option>`).join("");
   sel.value = cfg.provider || "mock";
   applyDefaults(cfg, providers);
+  updateApiSummary();
   sel.onchange = () => {
     const p = providers.find(x => x.id === sel.value);
     $("model").value = p?.default_model || "";
@@ -116,6 +118,7 @@ function applyDefaults(c, providers) {
 function saveCfg() {
   cfg = { provider: $("provider").value, model: $("model").value, base_url: $("base_url").value, api_key: $("api_key").value };
   store.set("hs_api", cfg);
+  updateApiSummary();
 }
 
 $("send").onclick = send;
@@ -144,6 +147,7 @@ function renderDilemmas() {
   $("dilemmas").querySelectorAll("button[data-i]").forEach(b => {
     b.onclick = () => openDilemma((figure.dilemmas || [])[+b.dataset.i]);
   });
+  updateDrawerBadge();
 }
 
 function openDilemma(d) {
@@ -462,4 +466,72 @@ function bindHints(hints) {
       btn.textContent = `💡 再给一点提示？（已用 ${hintLevel}/${hints.length}）`;
     }
   };
+}
+
+
+/* ---------- 右侧抽屉（默认收起） ---------- */
+const DRAWER_KEY = "hs_drawer";
+
+function isNarrow() {
+  return typeof window.matchMedia === "function"
+    && window.matchMedia("(max-width:1000px)").matches;
+}
+
+function syncDrawerLock() {
+  const open = $("chatPage").classList.contains("drawer-open");
+  document.body.classList.toggle("drawer-lock", open && isNarrow());
+}
+
+function setDrawer(open) {
+  $("chatPage").classList.toggle("drawer-open", open);
+  const d = $("drawer");
+  if (d) d.setAttribute("aria-hidden", open ? "false" : "true");
+  try { localStorage.setItem(DRAWER_KEY, open ? "1" : "0"); } catch (e) { /* ignore */ }
+  syncDrawerLock();
+}
+
+function initDrawer() {
+  let open = false;
+  try { open = localStorage.getItem(DRAWER_KEY) === "1"; } catch (e) { /* ignore */ }
+  setDrawer(open);
+  $("drawerBtn").onclick = () => setDrawer(!$("chatPage").classList.contains("drawer-open"));
+  $("drawerClose").onclick = () => setDrawer(false);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") setDrawer(false); });
+  window.addEventListener("resize", syncDrawerLock);
+  // 语言切换后重算 API 摘要（它是动态拼出来的）
+  document.addEventListener("i18n:changed", updateApiSummary);
+}
+
+function updateDrawerBadge() {
+  const b = $("drawerBadge");
+  if (!b) return;
+  const n = (figure && figure.dilemmas) ? figure.dilemmas.length : 0;
+  b.textContent = n;
+  b.hidden = !n;
+}
+
+/* ---------- API 设置：默认收成一行 ---------- */
+const API_OPEN_KEY = "hs_api_open";
+
+function setApiOpen(open) {
+  const bar = $("apiBar");
+  if (bar) bar.hidden = !open;
+  try { localStorage.setItem(API_OPEN_KEY, open ? "1" : "0"); } catch (e) { /* ignore */ }
+}
+
+function initApiBar() {
+  let open = false;
+  try { open = localStorage.getItem(API_OPEN_KEY) === "1"; } catch (e) { /* ignore */ }
+  setApiOpen(open);
+  $("apiToggle").onclick = () => setApiOpen($("apiBar").hidden);
+}
+
+function updateApiSummary() {
+  const el = $("apiSummary");
+  const sel = $("provider");
+  if (!el || !sel) return;
+  const label = (sel.selectedOptions && sel.selectedOptions[0])
+    ? sel.selectedOptions[0].textContent : "离线演示";
+  const model = ($("model").value || "").trim();
+  el.textContent = model ? `API：${label} · ${model}` : `API：${label}`;
 }
