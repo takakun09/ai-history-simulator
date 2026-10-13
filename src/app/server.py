@@ -9,7 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from . import assessment, profile, providers, rubric, store
+from . import assessment, profile, providers, rubric, store, uploads
 
 ROOT = Path(__file__).resolve().parents[2]
 WEB = ROOT / "web"
@@ -217,6 +217,17 @@ class Handler(BaseHTTPRequestHandler):
                 "claim": claim, "verdict": verdict, "basis": basis, "result": result,
             })
             return self._json({"result": result})
+
+        if path == "/api/upload":
+            try:
+                rel = uploads.save_image(body.get("filename", ""), body.get("data", ""))
+            except uploads.UploadError as exc:
+                code = exc.args[0] if exc.args else "bad_data"
+                return self._json(
+                    {"error": uploads.ERROR_TEXT.get(code, "上传失败"), "code": code}, 400)
+            except OSError as exc:
+                return self._json({"error": f"写入失败：{exc}", "code": "io_error"}, 500)
+            return self._json({"path": rel})
 
         return self._json({"error": "not found"}, 404)
 

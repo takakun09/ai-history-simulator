@@ -374,3 +374,14 @@ html[lang="en"] .dim-row{font-size:12.5px}
 html[lang="en"] .dim-val{font-size:12px}
 html[lang="en"] .prof-row{font-size:12px}
 html[lang="en"] .dim-row > div:first-child{min-width:0}
+
+/* ---------- 教师端：形象拖拽上传 ---------- */
+.avatar-drop{display:flex;align-items:center;gap:14px;border:2px dashed #c3d3e6;border-radius:14px;
+  padding:14px;background:#f7fafd;cursor:pointer;transition:.15s;outline:none}
+.avatar-drop:hover,.avatar-drop:focus-visible{border-color:#8fb6e0;background:#f2f8ff}
+.avatar-drop.dragover{border-color:#3a6ea5;background:#eaf3ff}
+.avatar-drop img{width:64px;height:64px;border-radius:50%;object-fit:cover;background:#eef1f5;flex:0 0 auto}
+.avatar-drop-hint{font-size:12.5px;color:#5a6a85;line-height:1.6}
+.avatar-msg{font-size:12.5px;margin-top:6px;min-height:18px}
+.avatar-msg.ok{color:#2f9e63}
+.avatar-msg.bad{color:#c0392b}

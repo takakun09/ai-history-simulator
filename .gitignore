@@ -10,3 +10,4 @@ data/figures.local.json
 data/*.json
 *.bundle
 .secrets/
+web/assets/avatars/uploads/

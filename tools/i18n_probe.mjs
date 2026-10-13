@@ -77,6 +77,10 @@ const dynCases = [
   ["抉择 3 次 · 核对 2 次", "3 decision(s) · 2 check(s)"],
   ["用了 2 级提示", "used 2 hint(s)"],
   ["选择：王平", "Choice: 王平"],
+  ["资料与任务", "Resources & tasks"],
+  ["拖拽图片到此处，或点击选择", "Drag an image here, or click to choose"],
+  ["只支持 PNG / JPG / WEBP / GIF 图片", "Only PNG / JPG / WEBP / GIF are supported"],
+  ["上传中…", "Uploading…"],
 ];
 for (const [input, want] of dynCases) {
   const n = text(input);

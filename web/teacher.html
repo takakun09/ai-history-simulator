@@ -46,7 +46,16 @@
         </div>
       </div>
       <div class="field"><label>一句话简介</label><input id="f_tagline"></div>
-      <div class="field"><label>卡通形象路径</label><input id="f_avatar" placeholder="assets/avatars/xxx.svg"></div>
+      <div class="field">
+        <label>卡通形象</label>
+        <div class="avatar-drop" id="avatarDrop" tabindex="0">
+          <img id="avatarPreview" src="" alt="">
+          <div class="avatar-drop-hint">拖拽图片到此处，或点击选择</div>
+        </div>
+        <input type="file" id="avatarFile" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+        <input id="f_avatar" placeholder="assets/avatars/xxx.svg（也可手动填路径）">
+        <div class="avatar-msg" id="avatarMsg"></div>
+      </div>
     </div>
 
     <div class="tabpane" id="pane-persona">

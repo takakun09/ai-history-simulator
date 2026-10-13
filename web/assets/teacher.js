@@ -85,6 +85,8 @@ function fill(f) {
   $("f_accent_color").value = /^#[0-9a-fA-F]{6}$/.test(draft.accent || "") ? draft.accent : "#2b4162";
   $("f_tagline").value = draft.tagline || "";
   $("f_avatar").value = draft.avatar || "";
+  updateAvatarPreview();
+  avatarMsg("");
   $("f_opening").value = draft.opening || "";
   $("f_prompt").value = draft.system_prompt || "";
   $("f_published").checked = !!draft.published;
@@ -380,3 +382,77 @@ EDITOR.addEventListener("input", refreshDirty);
 EDITOR.addEventListener("change", refreshDirty);
 
 load();
+
+
+/* ---------- 形象拖拽上传（P0-6） ---------- */
+const AVATAR_OK = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+const AVATAR_MAX = 2 * 1024 * 1024;
+const UPLOAD_ERR = {
+  unsupported_type: "只支持 PNG / JPG / WEBP / GIF 图片",
+  too_large: "图片太大，请压缩到 2MB 以内",
+  bad_data: "图片数据读取失败",
+  io_error: "形象上传失败",
+};
+
+function avatarMsg(text, ok) {
+  const el = $("avatarMsg");
+  if (!el) return;
+  el.textContent = text || "";
+  el.classList.toggle("ok", !!ok);
+  el.classList.toggle("bad", !!text && !ok);
+}
+
+function updateAvatarPreview() {
+  const img = $("avatarPreview");
+  if (!img) return;
+  const path = ($("f_avatar").value || "").trim() || "assets/avatars/placeholder.svg";
+  img.src = "/" + path.replace(/^\/+/, "");
+}
+
+async function uploadAvatar(file) {
+  if (!file) return;
+  if (!AVATAR_OK.includes(file.type)) { avatarMsg(UPLOAD_ERR.unsupported_type); return; }
+  if (file.size > AVATAR_MAX) { avatarMsg(UPLOAD_ERR.too_large); return; }
+  avatarMsg("上传中…");
+  try {
+    const data = await new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result);
+      fr.onerror = () => reject(new Error("read"));
+      fr.readAsDataURL(file);
+    });
+    const resp = await api("/api/upload", {
+      method: "POST",
+      body: JSON.stringify({ filename: file.name, data }),
+    });
+    $("f_avatar").value = resp.path;
+    if (draft) draft.avatar = resp.path;
+    updateAvatarPreview();
+    avatarMsg("上传成功", true);
+    refreshDirty();
+  } catch (e) {
+    avatarMsg(UPLOAD_ERR[(e && e.code) || ""] || UPLOAD_ERR.io_error);
+  }
+}
+
+function initAvatarDrop() {
+  const drop = $("avatarDrop");
+  const file = $("avatarFile");
+  if (!drop || !file) return;
+  drop.onclick = () => file.click();
+  drop.onkeydown = (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); file.click(); }
+  };
+  file.onchange = () => { uploadAvatar(file.files[0]); file.value = ""; };
+  ["dragenter", "dragover"].forEach((ev) =>
+    drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("dragover"); }));
+  ["dragleave", "drop"].forEach((ev) =>
+    drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("dragover"); }));
+  drop.addEventListener("drop", (e) => {
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    uploadAvatar(f);
+  });
+  $("f_avatar").addEventListener("input", updateAvatarPreview);
+}
+
+initAvatarDrop();
