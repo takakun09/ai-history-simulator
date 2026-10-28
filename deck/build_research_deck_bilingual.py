@@ -38,13 +38,17 @@ T = {
   "b1_series": "使用比例",
   "b1_big": "+14 个百分点",
   "b1_sub": "7 个月，1,214 名青少年",
+  "howto_b1": "怎么读：同一批 12–29 岁青少年（n=1,214）在 7 个月内，用 AI 做作业的比例从 48% 升到 62%。",
+  "howto_b2": "怎么读：三种高频用途都是「让 AI 产出内容」，而不是「让 AI 检验我的判断」。",
+  "howto_b3": "怎么读：三项独立调查从不同角度指向同一件事——学生和教师的担忧都在上升。",
+  "howto_gap": "怎么读：横轴是 AI 的角色，纵轴是学科。现有工作集中在左半边，我们做右下角。",
   "b1_a": "45% 在学校用过 AI",
   "b1_b": "85% 的 AI 用户用它做作业",
   "b2_title": "但用途只有一种",
   "b2_cat": ["求解释", "找想法", "查事实"],
   "b2_note": "三种用途，都是\n「让 AI 替我想」。",
-  "b3_title": "老师担心的不是用不用，而是还思不思考",
-  "b3": [("54%", "老师说 AI 让思考变难"), ("43.2%", "老师担心学生用 AI"), ("66%", "英格兰中学老师担心")],
+  "b3_title": "担忧在两端同时上升",
+  "b3": [("67%", "学生担心 AI 损害批判性思维\n（2025 年初为 54%）"), ("43.2%", "老师担心学生用生成式 AI\n（同比 +7.5pp）"), ("54%", "老师认为 AI 让思考更难学\n（2026 教师民调）")],
   "pain_title": "历史最核心的能力，最容易被代劳",
   "pain_chain": ["AI 给答案", "学生跳过求证", "史料判断被跳过", "只剩结论"],
   "pain_a": "历史不是「发生了什么」，而是「凭什么相信它发生过」。",
@@ -95,10 +99,21 @@ T = {
   "fut_title": "下一步",
   "fut": ["角色互换：学生演人物，AI 追问。", "双人对质：两个立场相反的人物。", "更大规模对照实验。"],
   "qa": ("Q & A", "谢谢，欢迎提问。"),
+  "ref_title": "参考文献与数据来源",
+  "ref_note": "检索日期：2026-10-28。数字以原文为准；不同调查对「使用 AI」的定义不同（16%–85%）。",
+  "refs": [
+    "RAND Corporation（2026-03-17）. More Students Use AI for Homework and Believe It Harms Their Learning. n = 1,214，12–29 岁. rand.org",
+    "HEPI（2025-02）. Student Generative AI Survey 2025. 45% 的学生在学校用过 AI. hepi.ac.uk",
+    "Common Sense Media（2025）. 青少年生成式 AI 使用调查：85% 的 AI 使用者把它用于学业. commonsensemedia.org",
+    "National Literacy Trust（2025-08）. Young people and teachers' use of generative AI：43.2% 教师担忧（+7.5pp）. literacytrust.org.uk",
+    "CSBA Blog（2026-04）. Students express mixed feelings on AI use for homework. blog.csba.org",
+    "Central Florida Public Media（2026-06）. 教师民调：54% 认为 AI 让批判性思考更难学.",
+    "RAND（2026-03）. 学生担忧比例 54% → 67%；聊天机器人使用率 60%（ChatGPT 53%、Gemini 28%）.",
+  ],
   "src": {
-   "b1": "Sources: RAND (2026-03, n=1,214), HEPI (2025-02), Common Sense Media (2025)",
-   "b2": "Source: CSBA Blog citing a 2026 student survey",
-   "b3": "Sources: teacher poll (2026-06), National Literacy Trust (2025-08), England survey (2026)",
+   "b1": "RAND, “More Students Use AI for Homework…” (2026-03-17, n=1,214) · HEPI, Student Generative AI Survey (2025-02) · Common Sense Media (2025)",
+   "b2": "RAND (2026-03-17). Uses: explanations 38%, brainstorming 35%, fact lookup 33%.",
+   "b3": "RAND (2026-03) · National Literacy Trust (2025-08) · teacher poll reported by Central Florida Public Media (2026-06)",
    "gap": "Indicative positioning, not an exhaustive review.",
   },
  },
@@ -117,13 +132,17 @@ T = {
   "b1_series": "Share using AI",
   "b1_big": "+14 points",
   "b1_sub": "in 7 months · 1,214 teens",
+  "howto_b1": "How to read: among 1,214 youth aged 12–29, AI-for-homework use rose from 48% to 62% in seven months.",
+  "howto_b2": "How to read: the top three uses all mean “let AI produce something”, not “let AI check my judgement”.",
+  "howto_b3": "How to read: three independent surveys point the same way — concern is rising among students and teachers.",
+  "howto_gap": "How to read: x = the AI's role, y = the subject. Existing work sits on the left; we work in the bottom-right.",
   "b1_a": "45% have used AI at school",
   "b1_b": "85% of AI-using teens use it for schoolwork",
   "b2_title": "But always for the same thing",
   "b2_cat": ["Better explanations", "Ideas", "Facts"],
   "b2_note": "All three mean:\n\"let AI think for me.\"",
-  "b3_title": "Teachers worry: do students still think?",
-  "b3": [("54%", "say AI makes critical thinking harder"), ("43.2%", "worried about student AI use"), ("66%", "of England secondary teachers concerned")],
+  "b3_title": "Concern is rising on both sides",
+  "b3": [("67%", "of students worry AI harms critical thinking\n(54% earlier in 2025)"), ("43.2%", "of teachers worried about student AI use\n(+7.5 pp year on year)"), ("54%", "of teachers say AI makes thinking harder\n(2026 teacher poll)")],
   "pain_title": "History's core skill is the easiest to outsource",
   "pain_chain": ["AI answers", "Student skips checking", "Sourcing is skipped", "Only conclusions remain"],
   "pain_a": "History is not \"what happened\" — it is \"why believe it happened\".",
@@ -174,10 +193,21 @@ T = {
   "fut_title": "Next steps",
   "fut": ["Role reversal: the student plays the figure.", "Two-agent debate: opposing accounts.", "A larger controlled study."],
   "qa": ("Q & A", "Thank you — questions welcome."),
+  "ref_title": "References and data sources",
+  "ref_note": "Retrieved 2026-10-28. Figures as reported; definitions of “using AI” vary across surveys (16%–85%).",
+  "refs": [
+    "RAND Corporation (2026-03-17). More Students Use AI for Homework and Believe It Harms Their Learning. n = 1,214, ages 12–29. rand.org",
+    "HEPI (2025-02). Student Generative AI Survey 2025. 45% have used AI at school. hepi.ac.uk",
+    "Common Sense Media (2025). Teens' generative-AI use: 85% of AI-using teens use it for schoolwork. commonsensemedia.org",
+    "National Literacy Trust (2025-08). Young people and teachers' use of generative AI: 43.2% of teachers concerned (+7.5pp). literacytrust.org.uk",
+    "CSBA Blog (2026-04). Students express mixed feelings on AI use for homework. blog.csba.org",
+    "Central Florida Public Media (2026-06). Teacher poll: 54% say AI makes critical thinking harder.",
+    "RAND (2026-03). Student concern 54% → 67%; chatbot use 60% (ChatGPT 53%, Gemini 28%).",
+  ],
   "src": {
-   "b1": "Sources: RAND (2026-03, n=1,214), HEPI (2025-02), Common Sense Media (2025)",
-   "b2": "Source: CSBA Blog citing a 2026 student survey",
-   "b3": "Sources: teacher poll (2026-06), National Literacy Trust (2025-08), England survey (2026)",
+   "b1": "RAND, “More Students Use AI for Homework…” (2026-03-17, n=1,214) · HEPI, Student Generative AI Survey (2025-02) · Common Sense Media (2025)",
+   "b2": "RAND (2026-03-17). Uses: explanations 38%, brainstorming 35%, fact lookup 33%.",
+   "b3": "RAND (2026-03) · National Literacy Trust (2025-08) · teacher poll reported by Central Florida Public Media (2026-06)",
    "gap": "Indicative positioning, not an exhaustive review.",
   },
  },
@@ -280,6 +310,7 @@ def build(lang, out):
     box(s, 8.1, y + 0.95, 4.1, 0.35, t["b1_sub"], size=11, color=MUTED)
     box(s, 7.9, y + 1.95, 4.5, 0.35, "·  " + t["b1_a"], size=12, color=INK)
     box(s, 7.9, y + 2.45, 4.5, 0.6, "·  " + t["b1_b"], size=12, color=INK)
+    box(s, M, y + 3.95, 11.4, 0.55, t["howto_b1"], size=11.5, color=MUTED, spacing=1.3)
     src(s, t["src"]["b1"])
 
     # 4 background 2
@@ -296,6 +327,7 @@ def build(lang, out):
     ch.category_axis.reverse_order = True
     rect(s, 8.75, y + 0.3, 3.7, 2.6, LIGHT)
     box(s, 9.05, y + 0.65, 3.1, 1.8, t["b2_note"], size=14, color=INK, spacing=1.5)
+    box(s, M, y + 3.55, 11.4, 0.55, t["howto_b2"], size=11.5, color=MUTED, spacing=1.3)
     src(s, t["src"]["b2"])
 
     # 5 background 3
@@ -306,6 +338,7 @@ def build(lang, out):
         rect(s, x, y + 0.15, 3.6, 0.07, [BLUE, AMBER, TEAL][i], shape=MSO_SHAPE.RECTANGLE)
         box(s, x + 0.3, y + 0.5, 3.0, 0.7, num, size=33, bold=True, color=NAVY)
         box(s, x + 0.3, y + 1.3, 3.0, 1.0, desc, size=12.5, color=INK, spacing=1.3)
+    box(s, M, y + 2.85, 11.4, 0.55, t["howto_b3"], size=11.5, color=MUTED, spacing=1.3)
     src(s, t["src"]["b3"])
 
     # 6 pain
@@ -354,6 +387,7 @@ def build(lang, out):
     box(s, gx + 0.22, gy + gh / 2 + 0.3, 2.9, 0.7, q[2] + "\n" + t["gap_main"], size=11, color=MUTED, spacing=1.3)
     rect(s, gx + gw / 2 + 0.22, gy + gh / 2 + 0.22, gw / 2 - 0.44, gh / 2 - 0.44, NAVY)
     box(s, gx + gw / 2 + 0.42, gy + gh / 2 + 0.42, 2.6, 0.9, q[3], size=13, bold=True, color=WHITE)
+    box(s, 8.35, y + 0.35, 4.2, 1.5, t["howto_gap"], size=11, color=MUTED, spacing=1.35)
     src(s, t["src"]["gap"])
 
     # 9 approach
@@ -474,13 +508,22 @@ def build(lang, out):
         box(s, M + 0.35, cy + 0.24, 10.9, 0.4, txt, size=15, color=INK)
         cy += 0.95
 
-    # 20 Q&A
+    # 20 references
+    s = prs.slides.add_slide(blank); y = header(s, t["ref_title"], t["kicker"], 20)
+    cy = y
+    for i, line in enumerate(t["refs"], 1):
+        box(s, M, cy, 0.5, 0.3, f"[{i}]", size=10.5, bold=True, color=BLUE)
+        box(s, M + 0.5, cy, 11.0, 0.62, line, size=10.5, color=INK, spacing=1.35)
+        cy += 0.68
+    box(s, M, SH - 0.62, 11.4, 0.3, t["ref_note"], size=9, color=MUTED)
+
+    # 21 Q&A
     s = prs.slides.add_slide(blank)
     rect(s, 0, 0, SW, SH, NAVY, shape=MSO_SHAPE.RECTANGLE)
     rect(s, 0, 0, 0.2, SH, BLUE, shape=MSO_SHAPE.RECTANGLE)
     box(s, M, 2.7, 11, 0.9, t["qa"][0], size=40, bold=True, color=WHITE)
     box(s, M, 3.8, 11, 0.5, t["qa"][1], size=17, color=RGBColor(0xC7, 0xD3, 0xE4))
-    page(s, 20)
+    page(s, 21)
 
     prs.save(out)
     print("saved:", out)
