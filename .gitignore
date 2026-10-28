@@ -11,3 +11,4 @@ data/*.json
 *.bundle
 .secrets/
 web/assets/avatars/uploads/
+~$*
