@@ -43,7 +43,7 @@ function blank(force = false) {
   fill({
     id: "", name: "", name_en: "", era: "", difficulty: "入门", accent: "#2b4162",
     tagline: "", avatar: "assets/avatars/placeholder.svg", opening: "", system_prompt: "",
-    sources: [], suggested_questions: [], dilemmas: [], published: false,
+    sources: [], suggested_questions: [], dilemmas: [], published: true,
   });
   $("title").textContent = "新建历史人物";
 }

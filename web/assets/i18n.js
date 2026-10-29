@@ -168,6 +168,7 @@ const DICT = {
   "单独增删改": ["單獨增刪改", "added, edited or removed individually"],
   "。改完点底部「保存并发布」同步到学生端。": ["。改完點底部「儲存並發布」同步到學生端。", ". Click “Save & publish” at the bottom to push it to students."],
   "已发布（学生端可见）": ["已發布（學生端可見）", "Published (visible to students)"],
+  "不勾选的话，学生端列表里看不到这个人物。": ["不勾選的話，學生端列表裡看不到這個人物。", "If left unchecked, students will not see this figure."],
   "「保存并发布」后，学生端立即生效。": ["「儲存並發布」後，學生端立即生效。", "After “Save & publish”, students see it immediately."],
   "💾 保存并发布": ["💾 儲存並發布", "💾 Save & publish"],
   "以学生身份测试": ["以學生身分測試", "Test as a student"],
